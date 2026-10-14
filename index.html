@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tracker</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#14171c;--mute:#6b7280;--line:#e5e7eb;--good:#15803d;--bad:#b91c1c;--accent:#2563eb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#181b21;--ink:#eef0f3;--mute:#9aa1ac;--line:#2a2f37;--good:#4ade80;--bad:#f87171;--accent:#60a5fa}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 24px)}
+main{max-width:640px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 12px}
+h1{font-size:22px;margin:0}
+.upd{color:var(--mute);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.k{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums}
+.l{font-size:12px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:7px 4px;border-top:1px solid var(--line);text-align:left;font-size:15px}
+th{font-size:12px;color:var(--mute);font-weight:500;border-top:0}
+td.n,th.n{text-align:right}
+.up{color:var(--good)}.down{color:var(--bad)}
+.note{color:var(--mute);font-size:14px;margin:0}
+svg{width:100%;height:120px;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:6px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 10px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
+
+<section class="card">
+<h2>Ads today <span id="adday"></span></h2>
+<div class="grid">
+<div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
+<div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
+<div><div class="k" id="inst">–</div><div class="l">Installs</div></div>
+<div><div class="k" id="spend">–</div><div class="l">Spent</div></div>
+<div><div class="k" id="cpt">–</div><div class="l">Avg per tap</div></div>
+<div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Today, through the day</h2>
+<svg id="chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Taps and installs through today"></svg>
+<div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Taps</span><span><span class="dot" style="background:var(--good)"></span>Installs</span></div>
+</section>
+
+<section class="card">
+<h2>Last 7 days of ads</h2>
+<table id="days"><thead><tr><th>Day</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Spent</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section class="card">
+<h2>Search rank <span id="rankat"></span></h2>
+<table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th></tr></thead><tbody></tbody></table>
+<p class="note" id="ratings" style="margin-top:10px"></p>
+</section>
+
+<section class="card">
+<h2>Trials, purchases, users</h2>
+<p class="note" id="rc">Not connected yet.</p>
+</section>
+
+<p class="upd" style="text-align:center">Refreshes every 2 minutes · <button id="reload">Refresh now</button></p>
+</main>
+<script>
+// Data lives on the repo's "data" branch so updates never rebuild this page.
+const DATA = 'https://raw.githubusercontent.com/Libertarian1786/tracker-board/data/data.json';
+const $ = (id) => document.getElementById(id);
+const money = (v) => v == null || v === '' ? '–' : '$' + Number(v).toFixed(2);
+function ago(iso) {
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago';
+}
+function chart(points) {
+  const svg = $('chart'); svg.innerHTML = '';
+  if (!points.length) return;
+  const max = Math.max(1, ...points.map((p) => p.taps));
+  const t0 = Date.parse(points[0].t), t1 = Math.max(t0 + 1, Date.parse(points[points.length - 1].t));
+  const x = (p) => ((Date.parse(p.t) - t0) / (t1 - t0)) * 296 + 2, y = (v) => 116 - (v / max) * 108;
+  for (const [key, color] of [['taps', 'var(--accent)'], ['installs', 'var(--good)']]) {
+    const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    pl.setAttribute('points', points.map((p) => x(p) + ',' + y(p[key])).join(' '));
+    pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', color); pl.setAttribute('stroke-width', '2.5');
+    pl.setAttribute('vector-effect', 'non-scaling-stroke'); svg.appendChild(pl);
+  }
+}
+async function load() {
+  try {
+    const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
+    $('upd').textContent = 'Updated ' + ago(d.updated);
+    const a = d.ads_today || {};
+    $('adday').textContent = a.day ? '(' + a.day + ')' : '';
+    $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = a.installs ?? '–';
+    $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
+    $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–';
+    chart(d.ads_through_today || []);
+    $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
+      `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
+    const rk = d.ranks || {};
+    $('rankat').textContent = rk.at ? '(' + ago(rk.at) + ')' : '';
+    $('ranks').tBodies[0].innerHTML = (rk.rows || []).map((r) => {
+      let ch = '';
+      if (r.rank && r.prev) { const diff = r.prev - r.rank; ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–'; }
+      else if (r.rank && !r.prev && r.had_prev) ch = '<span class="up">new</span>';
+      else if (!r.rank && r.prev) ch = '<span class="down">out</span>';
+      return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td></tr>`;
+    }).join('');
+    $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
+    if (d.rc) $('rc').innerHTML = d.rc;
+  } catch (e) { $('upd').textContent = 'Could not load (offline?)'; }
+}
+$('reload').onclick = load;
+load(); setInterval(load, 120000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+</script>
+</body>
+</html>
