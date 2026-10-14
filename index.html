@@ -100,8 +100,11 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 </section>
 
 <section class="card" id="users">
-<h2>Users, trials, purchases</h2>
-<p class="note" id="rc">Not connected yet: needs the RevenueCat read-only key.</p>
+<h2 id="ulabel">Users</h2>
+<div class="grid" id="ugrid"></div>
+<h2 style="margin-top:14px">Where people without a trial left</h2>
+<table id="left"><tbody></tbody></table>
+<p class="note" id="rc" style="font-size:12px;margin-top:8px"></p>
 </section>
 </div></div>
 
@@ -146,7 +149,17 @@ function summary() {
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); });
+document.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); people(); });
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function people() {
+  const d = last, t = (d.rc_totals || {})[range];
+  if (!t) { $('rc').textContent = 'Not connected yet.'; return; }
+  $('ulabel').textContent = 'Users (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
+  const cells = [['New users', t.new_users], ['From ads', t.ad_users], ['Organic', t.organic_users], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
+  $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
+  $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
+  $('rc').textContent = 'Only App Store installs; our own test installs are left out. Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
+}
 async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
@@ -165,7 +178,7 @@ async function load() {
       return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td></tr>`;
     }).join('');
     $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
-    if (d.rc) $('rc').innerHTML = d.rc;
+    people();
   } catch (e) { $('upd').textContent = 'Could not load (offline?)'; }
 }
 $('reload').onclick = load;
