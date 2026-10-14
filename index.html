@@ -45,7 +45,7 @@ td.n,th.n{text-align:right}
 .person .top{display:flex;justify-content:space-between;gap:8px;font-weight:600}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
-.tag.trial{background:var(--accent);color:#fff}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
+.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
 #hist td,#hist th{font-size:13.5px;white-space:nowrap}
 #hist td:first-child{white-space:normal}
 .up{color:var(--good)}.down{color:var(--bad)}
@@ -177,7 +177,7 @@ function people() {
   $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
   $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
   const list = (d.rc_people || []).filter((p) => filt === 'all' || (filt === 'trial' ? p.status !== 'no trial' : p.source === filt));
-  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${p.status === 'no trial' ? '' : `<span class="tag ${esc(p.status)}">${esc(p.status)}</span>`}${p.cancelled ? '<span class="tag cx">cancelled</span>' : ''}</span></div>
+  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${p.status === 'no trial' ? '<span class="tag install">install</span>' : `<span class="tag ${esc(p.status)}">${esc(p.status)}</span>`}${p.cancelled ? '<span class="tag cx">cancelled</span>' : ''}</span></div>
 <div class="meta">First ${esc(p.first)} · last ${esc(p.last)}${p.state ? ' · ' + esc(p.state) : ''}${p.license ? ' · ' + esc(p.license) : ''}${p.age ? ' · age ' + esc(p.age) : ''}${p.days_to_test ? ' · test in ' + esc(p.days_to_test) + ' d' : ''}</div>
 <div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
 ${p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' + (p.cancelled ? ' (will not bill: cancelled)' : '') : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : ''}
