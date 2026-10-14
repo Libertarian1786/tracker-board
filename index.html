@@ -38,7 +38,9 @@ td,th{padding:7px 4px;border-top:1px solid var(--line);text-align:left;font-size
 th{font-size:12px;color:var(--mute);font-weight:500;border-top:0}
 td.n,th.n{text-align:right}
 .paused td{color:var(--mute)}
-#kw td,#kw th{font-size:14px;white-space:nowrap}
+#kw td,#kw th{font-size:14px}
+#kw td.n,#kw th.n{white-space:nowrap}
+.sub{font-size:11px;color:var(--mute);margin-top:2px}
 .up{color:var(--good)}.down{color:var(--bad)}
 .note{color:var(--mute);font-size:14px;margin:0}
 svg{width:100%;height:120px;display:block}
@@ -75,8 +77,8 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 
 <section class="card" id="terms">
 <h2 id="tlabel">Per search term</h2>
-<div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Installs</th><th class="n">Per install</th><th class="n">Spent</th><th class="n">Bid</th></tr></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey = paused.</p>
+<div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Inst.</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey rows are paused terms.</p>
 </section>
 
 <section class="card">
@@ -142,7 +144,7 @@ function summary() {
   document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
   const kws = ((d.ads_keywords || {})[range] || []).slice().sort((x, y) => y.taps - x.taps || y.impressions - x.impressions);
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
-  $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}</td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td><td class="n">${money(k.spend)}</td><td class="n">${money(k.bid)}</td></tr>`).join('') || '<tr><td colspan="7">No data yet</td></tr>';
+  $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
 document.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); });
 async function load() {
