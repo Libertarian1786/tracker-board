@@ -42,25 +42,33 @@ td.n,th.n{text-align:right}
 svg{width:100%;height:120px;display:block}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:6px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;border-radius:8px;padding:8px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 10px}
 </style>
 </head>
 <body>
 <main>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
-<nav><a href="#ads" class="on">Ads</a><a href="#rank">Search rank</a><a href="#users">Users</a></nav>
+<nav><a href="#ads" class="on">Summary</a><a href="#rank">Search rank</a><a href="#users">Users</a></nav>
 <div class="cols"><div>
 
 <section class="card" id="ads">
-<h2>Ads today <span id="adday"></span></h2>
+<div class="seg" role="tablist"><button data-r="day" class="on">Today</button><button data-r="week">This week</button></div>
+<h2 id="rlabel">Today</h2>
 <div class="grid">
 <div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
 <div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
 <div><div class="k" id="inst">–</div><div class="l">Installs</div></div>
-<div><div class="k" id="spend">–</div><div class="l">Spent</div></div>
-<div><div class="k" id="cpt">–</div><div class="l">Avg per tap</div></div>
+<div><div class="k" id="trials">–</div><div class="l">Trials</div></div>
+<div><div class="k" id="buys">–</div><div class="l">Purchases</div></div>
+<div><div class="k" id="spend">–</div><div class="l">Ad cost</div></div>
+<div><div class="k" id="cpt">–</div><div class="l">Per tap</div></div>
 <div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
+<div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
 </div>
+<p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card">
@@ -111,15 +119,26 @@ function chart(points) {
     pl.setAttribute('vector-effect', 'non-scaling-stroke'); svg.appendChild(pl);
   }
 }
+let last = {}, range = 'day';
+try { range = localStorage.getItem('range') || 'day'; } catch (e) {}
+function summary() {
+  const d = last, days = d.ads_days || [];
+  const a = range === 'day' ? (d.ads_today || {}) : days.reduce((t, r) => ({ impressions: t.impressions + r.impressions, taps: t.taps + r.taps, installs: t.installs + r.installs, spend: t.spend + r.spend }), { impressions: 0, taps: 0, installs: 0, spend: 0 });
+  const rc = (d.rc_totals || {})[range] || {};
+  $('rlabel').textContent = range === 'day' ? 'Today' + (a.day ? ' (' + a.day + ')' : '') : 'Last 7 days' + (days.length ? ' (' + days[days.length - 1].day.slice(5) + ' to ' + days[0].day.slice(5) + ')' : '');
+  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = a.installs ?? '–';
+  $('trials').textContent = rc.trials ?? '–'; $('buys').textContent = rc.purchases ?? '–';
+  $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
+  $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
+  $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
+  document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
+}
+document.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); });
 async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     $('upd').textContent = 'Updated ' + ago(d.updated);
-    const a = d.ads_today || {};
-    $('adday').textContent = a.day ? '(' + a.day + ')' : '';
-    $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = a.installs ?? '–';
-    $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
-    $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–';
+    last = d; summary();
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
