@@ -41,6 +41,11 @@ td.n,th.n{text-align:right}
 #kw td,#kw th{font-size:14px}
 #kw td.n,#kw th.n{white-space:nowrap}
 .sub{font-size:11px;color:var(--mute);margin-top:2px}
+.person{border-top:1px solid var(--line);padding:9px 0;font-size:14px}
+.person .top{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
+.tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
+.tag.trial{background:var(--accent);color:#fff}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
 .up{color:var(--good)}.down{color:var(--bad)}
 .note{color:var(--mute);font-size:14px;margin:0}
 svg{width:100%;height:120px;display:block}
@@ -104,6 +109,9 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div class="grid" id="ugrid"></div>
 <h2 style="margin-top:14px">Where people without a trial left</h2>
 <table id="left"><tbody></tbody></table>
+<h2 style="margin-top:14px">Each person (newest activity first)</h2>
+<div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Organic</button></div>
+<div id="people"></div>
 <p class="note" id="rc" style="font-size:12px;margin-top:8px"></p>
 </section>
 </div></div>
@@ -144,12 +152,14 @@ function summary() {
   $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
   $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
   $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
-  document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
+  document.querySelectorAll('#ads .seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
   const kws = ((d.ads_keywords || {})[range] || []).slice().sort((x, y) => y.taps - x.taps || y.impressions - x.impressions);
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); people(); });
+document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); people(); });
+let filt = 'all';
+document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function people() {
   const d = last, t = (d.rc_totals || {})[range];
@@ -158,7 +168,13 @@ function people() {
   const cells = [['New users', t.new_users], ['From ads', t.ad_users], ['Organic', t.organic_users], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
   $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
   $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
-  $('rc').textContent = 'Only App Store installs; our own test installs are left out. Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
+  const list = (d.rc_people || []).filter((p) => filt === 'all' || (filt === 'trial' ? p.status !== 'no trial' : p.source === filt));
+  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${p.status === 'no trial' ? '' : `<span class="tag ${esc(p.status)}">${esc(p.status)}</span>`}${p.cancelled ? '<span class="tag cx">cancelled</span>' : ''}</span></div>
+<div class="meta">First ${esc(p.first)} · last ${esc(p.last)}${p.state ? ' · ' + esc(p.state) : ''}${p.license ? ' · ' + esc(p.license) : ''}${p.age ? ' · age ' + esc(p.age) : ''}${p.days_to_test ? ' · test in ' + esc(p.days_to_test) + ' d' : ''}</div>
+<div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
+${p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : ''}
+${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}</div>`).join('') || '<p class="note">Nobody yet.</p>';
+  $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are US Central. Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
 async function load() {
   try {
