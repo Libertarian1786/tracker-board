@@ -19,6 +19,12 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 24px)}
 main{max-width:640px;margin:0 auto}
+nav{position:sticky;top:0;z-index:5;display:flex;gap:6px;background:var(--bg);padding:8px 0 10px;margin-bottom:4px}
+nav a{flex:1;text-align:center;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 6px;font-size:15px;font-weight:550}
+nav a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cols{display:block}
+section{scroll-margin-top:64px}
+@media (min-width:900px){main{max-width:1080px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}nav{justify-content:flex-start}nav a{flex:0 0 auto;padding:8px 22px}}
 header{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 12px}
 h1{font-size:22px;margin:0}
 .upd{color:var(--mute);font-size:13px}
@@ -42,8 +48,10 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <body>
 <main>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
+<nav><a href="#ads" class="on">Ads</a><a href="#rank">Search rank</a><a href="#users">Users</a></nav>
+<div class="cols"><div>
 
-<section class="card">
+<section class="card" id="ads">
 <h2>Ads today <span id="adday"></span></h2>
 <div class="grid">
 <div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
@@ -66,16 +74,18 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <table id="days"><thead><tr><th>Day</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Spent</th></tr></thead><tbody></tbody></table>
 </section>
 
-<section class="card">
+</div><div>
+<section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
 <table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th></tr></thead><tbody></tbody></table>
 <p class="note" id="ratings" style="margin-top:10px"></p>
 </section>
 
-<section class="card">
-<h2>Trials, purchases, users</h2>
-<p class="note" id="rc">Not connected yet.</p>
+<section class="card" id="users">
+<h2>Users, trials, purchases</h2>
+<p class="note" id="rc">Not connected yet: needs the RevenueCat read-only key.</p>
 </section>
+</div></div>
 
 <p class="upd" style="text-align:center">Refreshes every 2 minutes · <button id="reload">Refresh now</button></p>
 </main>
@@ -127,6 +137,9 @@ async function load() {
   } catch (e) { $('upd').textContent = 'Could not load (offline?)'; }
 }
 $('reload').onclick = load;
+const links = [...document.querySelectorAll('nav a')];
+const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => a.classList.toggle('on', a.hash === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
+['ads', 'rank', 'users'].forEach((id) => spy.observe($(id)));
 load(); setInterval(load, 120000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 </script>
