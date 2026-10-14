@@ -46,6 +46,8 @@ td.n,th.n{text-align:right}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
 .tag.trial{background:var(--accent);color:#fff}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
+#hist td,#hist th{font-size:13.5px;white-space:nowrap}
+#hist td:first-child{white-space:normal}
 .up{color:var(--good)}.down{color:var(--bad)}
 .note{color:var(--mute);font-size:14px;margin:0}
 svg{width:100%;height:120px;display:block}
@@ -102,6 +104,12 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <h2>Search rank <span id="rankat"></span></h2>
 <table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th></tr></thead><tbody></tbody></table>
 <p class="note" id="ratings" style="margin-top:10px"></p>
+</section>
+
+<section class="card" id="climb">
+<h2>Rank over time</h2>
+<div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to now; higher up is better.</p>
 </section>
 
 <section class="card" id="users">
@@ -176,6 +184,27 @@ ${p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.tri
 ${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}</div>`).join('') || '<p class="note">Nobody yet.</p>';
   $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are US Central. Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
+function rankHistory(h) {
+  const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort().slice(-5);
+  const head = '<tr><th>Term</th>' + days.map((d) => `<th class="n">${d.slice(5).replace('-', '/')}</th>`).join('') + '<th class="n">Change</th></tr>';
+  const terms = Object.keys(h).sort((a, b) => {
+    const now = (t) => (h[t][h[t].length - 1] || {}).rank || 999;
+    return now(a) - now(b);
+  });
+  const rowsH = terms.map((t) => {
+    const by = Object.fromEntries(h[t].map((x) => [x.day, x.rank]));
+    const first = h[t].find((x) => x.rank), cur = h[t][h[t].length - 1];
+    let ch = '';
+    if (first && cur && cur.rank && first.day !== cur.day) {
+      const diff = first.rank - cur.rank;
+      ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–';
+    } else if (cur && cur.rank && !first) ch = '';
+    else if (cur && cur.rank && h[t].some((x) => x.rank === null && x.day < cur.day) && first && first.day === cur.day) ch = '<span class="up">new</span>';
+    else if (first && cur && !cur.rank) ch = '<span class="down">out</span>';
+    return `<tr><td>${esc(t)}</td>` + days.map((d) => `<td class="n">${d in by ? (by[d] ? '#' + by[d] : '–') : ''}</td>`).join('') + `<td class="n">${ch}</td></tr>`;
+  }).join('');
+  $('hist').tHead.innerHTML = head; $('hist').tBodies[0].innerHTML = rowsH;
+}
 async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
@@ -195,6 +224,7 @@ async function load() {
     }).join('');
     $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
     people();
+    rankHistory(d.rank_history || {});
   } catch (e) { $('upd').textContent = 'Could not load (offline?)'; }
 }
 $('reload').onclick = load;
