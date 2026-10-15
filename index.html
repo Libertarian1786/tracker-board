@@ -79,6 +79,14 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
 <div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
 </div>
+<h2 style="margin-top:14px">Ads vs organic</h2>
+<table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Organic</th><th class="n">Total</th></tr></thead><tbody>
+<tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
+<tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
+<tr><td>Purchases</td><td class="n" id="s_p_a">–</td><td class="n" id="s_p_o">–</td><td class="n" id="s_p_t">–</td></tr>
+<tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
+</tbody></table>
+<p class="note" style="margin-top:8px;font-size:12px">Counted from RevenueCat, App Store installs only. Organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count above.</p>
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
@@ -159,6 +167,11 @@ function summary() {
   $('trials').textContent = rc.trials ?? '–'; $('buys').textContent = rc.purchases ?? '–';
   $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
   $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
+  const sp = (id, x, y) => { $('s_' + id + '_a').textContent = x ?? '–'; $('s_' + id + '_o').textContent = y ?? '–'; $('s_' + id + '_t').textContent = x == null || y == null ? '–' : (typeof x === 'string' ? '' : x + y); };
+  const has = rc.organic_users != null && rc.organic_trials != null;
+  sp('i', has ? rc.ad_users : null, has ? rc.organic_users : null); sp('t', has ? rc.ad_trials : null, has ? rc.organic_trials : null);
+  sp('p', has ? rc.ad_purchases : null, has ? rc.organic_purchases : null);
+  $('s_r_a').textContent = has ? money(rc.ad_revenue) : '–'; $('s_r_o').textContent = has ? money(rc.organic_revenue) : '–'; $('s_r_t').textContent = has ? money(rc.ad_revenue + rc.organic_revenue) : '–';
   $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
   document.querySelectorAll('#ads .seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
   const kws = ((d.ads_keywords || {})[range] || []).slice().sort((x, y) => y.taps - x.taps || y.impressions - x.impressions);
