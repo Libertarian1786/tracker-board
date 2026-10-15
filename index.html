@@ -46,6 +46,8 @@ td.n,th.n{text-align:right}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
 .tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
+.tag.weekly,.tag.monthly,.tag.yearly{background:var(--good);color:#04130a}.tag.pass{background:#a855f7;color:#fff}.tag.expired{background:#6b7280;color:#fff}
+.plan{font-size:13px;margin-top:3px;font-weight:550}.plan.pass{color:#a855f7}.plan.sub{color:var(--good)}.plan.trial{color:var(--accent)}.plan.off{color:var(--mute)}
 #hist td,#hist th{font-size:13.5px;white-space:nowrap}
 #hist td:first-child{white-space:normal}
 .up{color:var(--good)}.down{color:var(--bad)}
@@ -182,6 +184,27 @@ function summary() {
 document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); people(); });
 let filt = 'all';
 document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
+function tagsFor(p) {
+  const t = (c, x) => `<span class="tag ${c}">${esc(x)}</span>`;
+  if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '');
+  if (p.plan_kind === 'pass') return t('pass', 'pass');
+  if (p.plan_state === 'expired') return t('expired', 'expired');
+  return (p.trialing ? t('trial', 'trial') : t(p.plan_kind, p.plan_kind)) + (p.plan_state === 'cancelled' ? t('cx', 'cancelled') : '');
+}
+function planLine(p) {
+  if (!p.plan_state) return '';
+  const paid = p.paid_usd ? ' · paid $' + esc(p.paid_usd) : '', bought = p.purchased_at ? 'Bought ' + esc(p.purchased_at) : '';
+  const started = p.purchased_at && p.started_at && p.started_at.slice(0, 5) !== p.purchased_at.slice(0, 5) ? ' (started ' + esc(p.started_at) + ')' : '';
+  const kind = p.plan_kind === 'pass' ? 'one-time pass' : p.plan_kind + ' subscription';
+  let c = 'sub', txt;
+  if (p.plan_kind === 'pass') { c = 'pass'; txt = `${bought || 'Bought'} · one-time pass${paid}`; }
+  else if (p.trialing && p.plan_state === 'trial') { c = 'trial'; txt = `Trial started ${esc(p.started_at)} · Trial bills ${esc(p.bills || p.renews_at)}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' : ''}`; }
+  else if (p.trialing) { c = 'trial'; txt = `Trial started ${esc(p.started_at)} · Ends ${esc(p.ends_at)}, won't renew (no charge)`; }
+  else if (p.plan_state === 'active') txt = `${bought} · Renews ${esc(p.renews_at)} · ${kind}${started}${paid}`;
+  else if (p.plan_state === 'cancelled') txt = `${bought} · Ends ${esc(p.ends_at)}, won't renew · ${kind}${started}${paid}`;
+  else { c = 'off'; txt = (p.purchased_at ? `${bought} · ` : `Trial started ${esc(p.started_at)} · `) + `Ended ${esc(p.ends_at)}${p.purchased_at ? '' : ', never paid'} · ${kind}${paid}`; }
+  return `<div class="plan ${c}">${txt}</div>`;
+}
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function people() {
   const d = last, t = (d.rc_totals || {})[range];
@@ -191,12 +214,12 @@ function people() {
   $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
   $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
   const list = (d.rc_people || []).filter((p) => filt === 'all' || (filt === 'trial' ? p.status !== 'no trial' : p.source === filt));
-  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${p.status === 'no trial' ? '<span class="tag install">install</span>' : `<span class="tag ${esc(p.status)}">${esc(p.status)}</span>`}${p.cancelled ? '<span class="tag cx">cancelled</span>' : ''}</span></div>
+  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${tagsFor(p)}</span></div>
 <div class="meta">First ${esc(p.first)} · last ${esc(p.last)}${p.state ? ' · ' + esc(p.state) : ''}${p.license ? ' · ' + esc(p.license) : ''}${p.age ? ' · age ' + esc(p.age) : ''}${p.days_to_test ? ' · test in ' + esc(p.days_to_test) + ' d' : ''}</div>
 <div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
 ${(p.payer || p.heard_from || p.drivers_ed) ? `<div class="meta">${p.payer ? 'paid by ' + esc(p.payer === 'parent' ? 'a parent' : 'self') : ''}${p.heard_from ? (p.payer ? ' · ' : '') + 'heard from ' + esc(String(p.heard_from).replace('_', ' ')) : ''}${p.drivers_ed ? ' · drivers ed: ' + esc(p.drivers_ed) : ''}</div>` : ''}
 ${(p.mocks_passed || p.real_test) ? `<div class="meta">${p.mocks_passed ? esc(p.mocks_passed) + ' mock exams passed' : ''}${p.real_test ? (p.mocks_passed ? ' · ' : '') + 'real test: ' + esc(p.real_test) + (p.real_test_score ? ' (score ' + esc(p.real_test_score) + ')' : '') : ''}</div>` : ''}
-${p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' + (p.cancelled ? ' (will not bill: cancelled)' : '') : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : ''}
+${p.plan_state ? planLine(p) : (p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' + (p.cancelled ? ' (will not bill: cancelled)' : '') : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : '')}
 ${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}</div>`).join('') || '<p class="note">Nobody yet.</p>';
   $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are US Central. Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
