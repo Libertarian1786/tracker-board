@@ -50,6 +50,9 @@ td.n,th.n{text-align:right}
 .plan{font-size:13px;margin-top:3px;font-weight:550}.plan.pass{color:#a855f7}.plan.sub{color:var(--good)}.plan.trial{color:var(--accent)}.plan.off{color:var(--mute)}
 #hist td,#hist th{font-size:13.5px;white-space:nowrap}
 #hist td:first-child{white-space:normal}
+#ages td,#ages th{font-size:13.5px;padding:7px 3px}
+#ages tr.zero td{color:var(--mute)}
+#ages tfoot td{font-weight:650;border-top:2px solid var(--line)}
 .up{color:var(--good)}.down{color:var(--bad)}
 .note{color:var(--mute);font-size:14px;margin:0}
 svg{width:100%;height:120px;display:block}
@@ -90,6 +93,12 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 </tbody></table>
 <p class="note" style="margin-top:8px;font-size:12px">Counted from RevenueCat, App Store installs only. Organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count above.</p>
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="agecard">
+<h2 id="agelabel">Ages</h2>
+<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<p class="note" id="agenote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card" id="terms">
@@ -181,7 +190,22 @@ function summary() {
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); people(); });
+document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); people(); });
+function agesTable() {
+  const rows = ((last.rc_ages || {})[range]) || [];
+  const label = range === 'day' ? 'today' : 'last 7 days';
+  $('agelabel').textContent = 'Ages (' + label + ')';
+  if (!rows.length) { $('ages').tBodies[0].innerHTML = '<tr><td colspan="7">No data yet</td></tr>'; $('ages').tFoot.innerHTML = ''; $('agenote').textContent = ''; return; }
+  const sum = (k) => rows.reduce((t, r) => t + (r[k] || 0), 0), all = sum('total');
+  const pct = (n) => all ? Math.round(n / all * 100) + '%' : '–';
+  const paidSub = (r) => [r.paid_weekly && r.paid_weekly + ' wk', r.paid_monthly && r.paid_monthly + ' mo', r.paid_pass && r.paid_pass + ' pass', r.paid_other && r.paid_other + ' other'].filter(Boolean).join(' · ');
+  const shown = rows.filter((r) => r.key !== '18_24' || r.total || r.trials || r.paid);
+  $('ages').tBodies[0].innerHTML = shown.map((r) => `<tr class="${r.total || r.trials || r.paid ? '' : 'zero'}"><td>${esc(r.label)}</td><td class="n">${r.total}</td><td class="n">${r.ads}</td><td class="n">${r.organic}</td><td class="n">${r.trials}</td><td class="n">${r.paid}${paidSub(r) ? `<div class="sub">${esc(paidSub(r))}</div>` : ''}</td><td class="n">${pct(r.total)}</td></tr>`).join('');
+  const tp = { w: sum('paid_weekly'), m: sum('paid_monthly'), p: sum('paid_pass'), o: sum('paid_other') };
+  const tsub = [tp.w && tp.w + ' wk', tp.m && tp.m + ' mo', tp.p && tp.p + ' pass', tp.o && tp.o + ' other'].filter(Boolean).join(' · ');
+  $('ages').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${all}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}${tsub ? `<div class="sub" style="font-weight:400">${esc(tsub)}</div>` : ''}</td><td class="n">${all ? '100%' : '–'}</td></tr>`;
+  $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (US Central days), App Store installs only, same people as the Summary. Total, Ads and Organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
+}
 let filt = 'all';
 document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
 function tagsFor(p) {
@@ -248,7 +272,7 @@ async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     $('upd').textContent = 'Updated ' + ago(d.updated);
-    last = d; summary();
+    last = d; summary(); agesTable();
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
