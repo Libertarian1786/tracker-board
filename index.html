@@ -110,8 +110,9 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 </div><div>
 <section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
-<table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th></tr></thead><tbody></tbody></table>
+<table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
 <p class="note" id="ratings" style="margin-top:10px"></p>
+<p class="note" style="margin-top:6px;font-size:12px">Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p>
 </section>
 
 <section class="card" id="climb">
@@ -235,7 +236,8 @@ async function load() {
       if (r.rank && r.prev) { const diff = r.prev - r.rank; ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–'; }
       else if (r.rank && !r.prev && r.had_prev) ch = '<span class="up">new</span>';
       else if (!r.rank && r.prev) ch = '<span class="down">out</span>';
-      return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td></tr>`;
+      const pp = ((d.term_popularity || {}).terms || {})[r.term];
+      return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td><td class="n">${pp ? pp.popularity + ' of 5' : '–'}</td></tr>`;
     }).join('');
     $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
     people();
