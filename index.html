@@ -45,7 +45,7 @@ td.n,th.n{text-align:right}
 .person .top{display:flex;justify-content:space-between;gap:8px;font-weight:600}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
-.tag.tap{background:#f59e0b;color:#1f1300}.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
+.tag.tap{background:#db2777;color:#fff;font-weight:700;box-shadow:0 0 0 2px #fbcfe8}.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
 .tag.weekly,.tag.monthly,.tag.yearly{background:var(--good);color:#04130a}.tag.pass{background:#a855f7;color:#fff}.tag.expired{background:#6b7280;color:#fff}
 .plan{font-size:13px;margin-top:3px;font-weight:550}.plan.pass{color:#a855f7}.plan.sub{color:var(--good)}.plan.trial{color:var(--accent)}.plan.off{color:var(--mute)}
 #hist td,#hist th{font-size:13.5px;white-space:nowrap}
@@ -259,7 +259,7 @@ let filt = 'all';
 document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
 function tagsFor(p) {
   const t = (c, x) => `<span class="tag ${c}">${esc(x)}</span>`;
-  const tap = p.tapped_buy ? t('tap', 'tapped buy') : '';
+  const tap = p.tapped_buy ? t('tap', '⚠ tapped buy, backed out') : '';
   if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '') + tap;
   if (p.plan_kind === 'pass') return t('pass', 'pass');
   if (p.plan_state === 'expired') return t('expired', 'expired') + tap;
