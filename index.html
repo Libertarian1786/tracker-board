@@ -117,7 +117,7 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div class="grid">
 <div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
 <div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
-<div><div class="k" id="inst">–</div><div class="l">Installs</div></div>
+<div><div class="k" id="inst">–</div><div class="l">Installs (live)<div class="sub" id="inst_apple" style="font-size:11px;opacity:.75"></div></div></div>
 <div><div class="k" id="trials">–</div><div class="l">Trials</div></div>
 <div><div class="k" id="buys">–</div><div class="l">Purchases</div></div>
 <div><div class="k" id="spend">–</div><div class="l">Ad cost</div></div>
@@ -190,6 +190,11 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <h2 id="tsdlabel">Search terms to dollars</h2>
 <div style="overflow-x:auto"><table id="tsd"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
 <p class="note" id="tsdnote" style="margin-top:8px;font-size:12px"></p>
+<div id="discbox" style="margin-top:14px" hidden>
+<h3 style="margin:0 0 6px;font-size:14px">Searches Apple matched</h3>
+<div style="overflow-x:auto"><table id="disct"><thead><tr><th>Search</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Inst.</th><th class="n">Spent</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="discnote" style="margin-top:8px;font-size:12px"></p>
+</div>
 </section>
 
 <section class="card">
@@ -307,7 +312,7 @@ function summary() {
   const a = range === 'day' ? (d.ads_today || {}) : days.reduce((t, r) => ({ impressions: t.impressions + r.impressions, taps: t.taps + r.taps, installs: t.installs + r.installs, spend: t.spend + r.spend }), { impressions: 0, taps: 0, installs: 0, spend: 0 });
   const rc = (d.rc_totals || {})[range] || {};
   $('rlabel').textContent = range === 'day' ? 'Today' + (a.day ? ' (' + a.day + ')' : '') : 'Last 7 days' + (days.length ? ' (' + days[days.length - 1].day.slice(5) + ' to ' + days[0].day.slice(5) + ')' : '');
-  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = a.installs ?? '–';
+  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = rc.new_users ?? a.installs ?? '–'; $('inst_apple').textContent = (rc.new_users != null ? (rc.ad_users ?? 0) + ' ads · ' + (rc.organic_users ?? 0) + ' organic · ' : '') + 'Apple ads: ' + (a.installs ?? '–') + ' (~3 h behind)';
   $('trials').textContent = rc.trials ?? '–'; $('buys').textContent = rc.purchases ?? '–';
   $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
   $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
@@ -479,6 +484,16 @@ function cancelsCard() {
   $('cxnote').textContent = 'All real App Store free trials since tracking began, not just this week. RevenueCat does not tell us WHEN auto-renew was switched off, and our key is refused by the only RevenueCat call that does, so we record the first refresh (every 10 minutes) that shows it off after one that showed it on: "noticed by" that time, and what the person had done at that read. Trials already off when tracking began (before 10-16) show "time not recorded" and their current ("now") numbers. Lessons are not recorded by the app, so they are not shown. Usual reading of the buckets, a rule of thumb and not measured here: within 10 minutes = switched off on purpose so there is no surprise charge, not a reaction to the app; 10 to 60 minutes = a reaction to the first session or the price; 1 to 24 hours = after trying it; day 2 and day 3 = decided after some use, close to the billing date.';
 }
 
+function discTerms(disc) {
+  const box = $('discbox');
+  if (!disc || !(disc.groups || []).length) { box.hidden = true; return; }
+  box.hidden = false;
+  const rows = ((disc.terms || {})[range] || []);
+  const cand = (x) => !x.other && x.installs >= 2 && x.spend / x.installs <= 2.5;
+  $('disct').tBodies[0].innerHTML = rows.length ? rows.map((x) => `<tr><td>${esc(x.term)}${cand(x) ? '<div class="sub up">candidate to add as exact</div>' : ''}</td><td class="n">${x.impressions}</td><td class="n">${x.taps}</td><td class="n">${x.installs}</td><td class="n">${money(x.spend)}</td><td class="n">${x.installs && x.spend ? money(x.spend / x.installs) : '–'}</td></tr>`).join('') : '<tr><td colspan="6">No searches matched yet. Apple reports search terms with a delay, so a new ad group can show nothing for a while.</td></tr>';
+  $('discnote').textContent = 'The actual searches that triggered the Discovery (Search Match) ad group, ' + (range === 'day' ? 'today' : 'last 7 days') + ', sorted by installs then taps. "Candidate to add as exact" = 2 or more installs at $2.50 or less per install. Apple hides searches that are too rare to report. Refreshed about every 30 minutes' + (disc.terms_pulled ? ' (last ' + ago(disc.terms_pulled) + ')' : '') + '.';
+}
+
 function termsDollars() {
   const T = $('tsd');
   const kws = ((last.ads_keywords || {})[range] || []);
@@ -497,10 +512,17 @@ function termsDollars() {
     const tp = tabs.reduce((t, c) => { const q = c[range] || {}; return { spend: t.spend + (q.spend || 0), taps: t.taps + (q.taps || 0), ai: t.ai + (q.installs || 0) }; }, { spend: 0, taps: 0, ai: 0 });
     by['~search tab'] = { term: 'Search tab (no keywords)', bid: null, status: '', spend: tp.spend, taps: tp.taps, ai: tp.ai, ri: 0, tr: 0, sa: 0, rev: 0, always: true };
   }
+  // Discovery (Search Match) ad group: no keywords, so the keyword report never lists it. Apple's ad group numbers, own row.
+  const disc = last.ads_discovery;
+  if (disc && (disc.groups || []).length) {
+    const q = disc[range] || {};
+    by['~discovery'] = { term: 'Discovery (Search Match)', bid: null, status: '', spend: q.spend || 0, taps: q.taps || 0, ai: q.installs || 0, ri: 0, tr: 0, sa: 0, rev: 0, always: true };
+  }
   const all = Object.values(by);
   const live = all.filter((x) => x.always || x.spend > 0 || x.taps > 0 || x.ai > 0 || x.ri > 0 || x.tr > 0 || x.sa > 0);
   live.sort((a, b) => (a.term === 'Organic') - (b.term === 'Organic') || b.spend - a.spend || b.ri - a.ri);
   const quiet = all.length - live.length;
+  discTerms(disc);
   if (!live.length) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No data yet</td></tr>'; T.tFoot.innerHTML = ''; $('tsdnote').textContent = ''; return; }
   T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Bid</th><th class="n">Spent</th><th class="n">Taps</th><th class="n">Apple inst.</th><th class="n">RC inst.</th><th class="n">Trials</th><th class="n">Sales</th><th class="n">Revenue</th><th class="n">Per inst.</th><th class="n">Per sale</th></tr>';
   const row = (x) => { const free = x.nospend || x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(x.term)}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
