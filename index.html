@@ -125,6 +125,12 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <table id="days"><thead><tr><th>Day</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Spent</th></tr></thead><tbody></tbody></table>
 </section>
 
+<section class="card" id="apple">
+<h2>Apple sales report</h2>
+<div style="overflow-x:auto"><table id="asales"><thead><tr><th>Day</th><th class="n">New downloads</th><th>Paid units (price, you keep)</th></tr></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Apple's own real-money record, one day per row. Days are Apple's (Pacific time). Apple's file for a day appears the next day, so today is not here yet. A red flag means Apple's paid units differ from what RevenueCat shows for that day.</p>
+</section>
+
 </div><div>
 <section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
@@ -309,6 +315,13 @@ async function load() {
       return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td><td class="n">${pp ? pp.popularity + ' of 5' : '–'}</td></tr>`;
     }).join('');
     $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
+    const ap = (d.apple_sales || {}).days || [];
+    $('asales').tBodies[0].innerHTML = ap.map((r) => {
+      if (!r.report) return `<tr class="paused"><td>${r.day.slice(5)}</td><td class="n">–</td><td>no report from Apple yet</td></tr>`;
+      const paid = (r.paid || []).map((p) => `${p.units > 1 ? p.units + ' × ' : ''}${p.sku.replace(/^premium_/, '')}${p.kind === 'Renewal' ? ' (renewal)' : ''} ${money(p.price)} (keep ${money(p.proceeds / (p.units || 1))})`).join('<br>') || '–';
+      const flag = r.differs ? `<div class="sub down">Differs: Apple ${r.paid_units} paid, RevenueCat ${r.rc_paid}</div>` : '';
+      return `<tr><td>${r.day.slice(5)}</td><td class="n">${r.downloads}</td><td>${paid}${flag}</td></tr>`;
+    }).join('') || '<tr><td colspan="3">No data yet</td></tr>';
     people();
     rankHistory(d.rank_history || {});
   } catch (e) { $('upd').textContent = 'Could not load (offline?)'; }
