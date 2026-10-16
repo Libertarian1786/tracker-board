@@ -60,6 +60,24 @@ td.n,th.n{text-align:right}
 #aba tfoot td{font-weight:650;border-top:2px solid var(--line)}
 #ages tfoot td{font-weight:650;border-top:2px solid var(--line)}
 .up{color:var(--good)}.down{color:var(--bad)}
+nav{overflow-x:auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav a{flex:0 0 auto;padding:9px 14px}
+#mdays td,#mdays th,#fun td,#fun th,#tsd td,#tsd th,#bup td,#bup th,#bhist td,#bhist th{font-size:13px;padding:7px 4px}
+#mdays tfoot td,#tsd tfoot td{font-weight:650;border-top:2px solid var(--line)}
+#mdays td,#mdays th{white-space:nowrap;font-size:12px;padding:7px 3px}#mdays td:first-child{white-space:normal}
+#fun td.c{vertical-align:top}#fun .pc{font-size:11px;color:var(--mute);display:block;white-space:nowrap;font-weight:400}#fun td.na{color:var(--mute);font-size:11px;white-space:normal;min-width:44px;line-height:1.2}#fun td,#fun th{padding:7px 3px}
+#fun tr.sub td:first-child{padding-left:14px}
+#tsd td,#tsd th{white-space:nowrap}
+#tsd td:first-child,#tsd th:first-child{white-space:normal;min-width:96px;max-width:150px;position:sticky;left:0;background:var(--card,var(--bg))}
+.chip{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;margin-right:6px;white-space:nowrap}
+.chip.early{background:#6b7280;color:#fff}.chip.weak{background:#f59e0b;color:#1f1300}.chip.solid{background:var(--good);color:#04130a}
+.chip.charged{background:var(--good);color:#04130a}.chip.ended{background:#6b7280;color:#fff}.chip.failed,.chip.issue{background:var(--bad);color:#fff}
+.chip.new{background:#db2777;color:#fff}
+.cbox{position:relative;height:190px;margin:4px 0 6px}
+.ctitle{font-size:14px;font-weight:600;margin:14px 0 2px}
+.grades{font-size:12.5px;color:var(--mute);margin:2px 0}
+.mk{font-size:12.5px;margin:2px 0;color:var(--ink)}.mk b{display:inline-block;min-width:20px}
+.rv{border-top:1px solid var(--line);padding:9px 0;font-size:14px}.rv .st{color:#f59e0b;letter-spacing:1px}
+.big{font-size:30px;font-weight:700}
 .note{color:var(--mute);font-size:14px;margin:0}
 svg{width:100%;height:120px;display:block}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:6px}
@@ -69,12 +87,13 @@ svg{width:100%;height:120px;display:block}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 10px}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
 <body>
 <main>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
 <p class="upd" style="margin:-4px 0 8px"><b>All times and days are Alaska time (Apple Ads day).</b> Ad numbers and app numbers use the same day.</p>
-<nav><a href="#ads" class="on">Summary</a><a href="#terms">Terms</a><a href="#rank">Rank</a><a href="#users">Users</a></nav>
+<nav><a href="#ads" class="on">Summary</a><a href="#money">Money</a><a href="#funnel">Funnel</a><a href="#terms">Terms</a><a href="#bills">Bills</a><a href="#trends">Trends</a><a href="#reviews">Reviews</a><a href="#rank">Rank</a><a href="#users">Users</a></nav>
 <div class="cols"><div>
 
 <section class="card" id="ads">
@@ -104,6 +123,18 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
+<section class="card" id="money">
+<h2 id="moneylabel">Money in vs money out</h2>
+<div class="l" id="mwin1" style="margin-bottom:6px">Since the ads started</div>
+<div class="grid" id="mgrid_all"></div>
+<div class="l" id="mwin2" style="margin:14px 0 6px">Today</div>
+<div class="grid" id="mgrid_win"></div>
+<div class="ctitle">Running profit / loss since the ads started</div>
+<div class="cbox" style="height:150px"><canvas id="cumchart" role="img" aria-label="Running profit or loss since the ads started"></canvas></div>
+<div style="overflow-x:auto"><table id="mdays"><thead><tr><th>Day</th><th class="n">Cost</th><th class="n">Revenue</th><th class="n">Keep</th><th class="n">Net</th><th class="n">Running</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="mnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
 <section class="card" id="agecard">
 <h2 id="agelabel">Ages</h2>
 <table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
@@ -119,10 +150,22 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
+<section class="card" id="funnel">
+<h2 id="funlabel">Funnel</h2>
+<div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
+<p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
 <section class="card" id="terms">
 <h2 id="tlabel">Per search term</h2>
 <div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Inst.</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
 <p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey rows are paused terms.</p>
+</section>
+
+<section class="card" id="termsd">
+<h2 id="tsdlabel">Search terms to dollars</h2>
+<div style="overflow-x:auto"><table id="tsd"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="tsdnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card">
@@ -143,6 +186,39 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 </section>
 
 </div><div>
+<section class="card" id="bills">
+<h2>Upcoming bills (next 7 days)</h2>
+<p id="bsum" style="margin:0 0 8px;font-size:15px"></p>
+<div style="overflow-x:auto"><table id="bup"><tbody></tbody></table></div>
+<h2 style="margin-top:16px">What happened to charges that came due (14 days)</h2>
+<p id="btally" class="note" style="margin:0 0 6px"></p>
+<div style="overflow-x:auto"><table id="bhist"><tbody></tbody></table></div>
+<p class="note" id="bnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="trends">
+<h2>Trends, with what we changed</h2>
+<div class="ctitle" style="margin-top:0">Installs per day: ads vs organic</div>
+<div class="cbox"><canvas id="tr_inst" role="img" aria-label="Installs per day, ads and organic"></canvas></div>
+<div class="grades" id="gr_inst"></div>
+<div class="ctitle">Cost per ad install</div>
+<div class="cbox"><canvas id="tr_cpi" role="img" aria-label="Cost per ad install per day"></canvas></div>
+<div class="grades" id="gr_cpi"></div>
+<div class="ctitle">Trials and paid charges per day</div>
+<div class="cbox"><canvas id="tr_conv" role="img" aria-label="Trials and paid charges per day"></canvas></div>
+<div class="grades" id="gr_conv"></div>
+<div class="ctitle">What the dashed vertical lines are (Alaska time)</div>
+<div id="mklist"></div>
+<p class="note" id="trnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="reviews">
+<h2>Ratings and reviews</h2>
+<div id="rvhead"></div>
+<div id="rvlist"></div>
+<p class="note" id="rvnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
 <section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
 <table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
@@ -215,7 +291,7 @@ function summary() {
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); people(); });
+document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); people(); moneyCard(); funnelCard(); termsDollars(); });
 function agesTable() {
   const rows = ((last.rc_ages || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -256,6 +332,181 @@ function adsByAge() {
   T.tFoot.innerHTML = '<tr><td>Total</td><td class="n">' + inst + '</td>' + cols.map((g) => `<td class="n">${sum((r) => r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(u18, inst)}</td><td class="n">${sum((r) => r.trials)}</td><td class="n">${sum((r) => r.paid)}</td></tr>`;
   $('abanote').textContent = 'Follows the Today / This week switch. Rolling 7-day window (Alaska days, same as Apple Ads), App Store installs only. Ages are what people chose in setup. Search term = Apple Ads keyword from RevenueCat attribution; Organic = no ad attribution. Installs = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid are counted as in the Ages table above (they can include people who installed earlier, so a row can show trials with 0 installs). Age columns that are empty for every row are hidden.';
 }
+// ------------------------------------------------------------------ 2026-10-16 additions
+const sgn = (v) => v == null || !isFinite(v) ? '–' : (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2);
+const cls = (v) => v > 0.004 ? 'up' : v < -0.004 ? 'down' : '';
+const dd = (d) => String(d).slice(5);
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function moneyWin(days) {
+  const t = { spend: 0, adInst: 0, inst: 0, gross: 0, proceeds: 0, cust: 0, charges: 0, apple: 0, rc: 0, instRc: 0, est: false };
+  for (const r of days) {
+    t.spend += r.spend; t.adInst += r.ad_installs; t.gross += r.gross; t.proceeds += r.proceeds; t.cust += r.new_customers; t.charges += r.charges;
+    if (r.downloads != null) t.inst += r.downloads; else { t.inst += r.rc_new; t.instRc++; }
+    if (r.rev_src === 'apple') t.apple++; else t.rc++;
+    if (r.rev_est) t.est = true;
+  }
+  return t;
+}
+function moneyGrid(id, t) {
+  const net = t.proceeds - t.spend;
+  const c = (k, l, sub, cl) => `<div><div class="k ${cl || ''}">${k}</div><div class="l">${l}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`;
+  $(id).innerHTML = c(sgn(t.spend), 'Ad cost') + c(sgn(t.gross), 'Revenue', 'what customers paid') + c(sgn(t.proceeds), 'You keep', "after Apple's cut") +
+    c(sgn(net), net >= 0 ? 'Profit' : 'Loss', 'you keep minus ad cost', cls(net)) +
+    c(t.adInst ? sgn(t.spend / t.adInst) : '–', 'Per ad install', t.adInst + ' ad installs') +
+    c(t.cust ? sgn(t.spend / t.cust) : '–', 'Per paying customer', t.cust + ' new paying customer' + (t.cust === 1 ? '' : 's') + (t.charges !== t.cust ? ', ' + t.charges + ' charges' : '')) +
+    c(t.inst ? sgn(t.gross / t.inst) : '–', 'Revenue per install', t.inst ? 'keep ' + sgn(t.proceeds / t.inst) : '') +
+    c(t.cust, 'Paying customers', 'first-time buyers') + c(t.inst, 'All installs', t.instRc ? t.instRc + ' day' + (t.instRc > 1 ? 's' : '') + ' from RevenueCat' : "Apple's count");
+}
+let cumChart = null;
+function moneyCard() {
+  const m = last.money;
+  if (!m || !(m.days || []).length) { $('mgrid_all').innerHTML = '<p class="note">No data yet</p>'; return; }
+  const days = m.days, win = range === 'day' ? days.slice(-1) : days.slice(-7);
+  $('mwin1').textContent = 'Since the ads started (' + dd(days[0].day) + ' to ' + dd(days[days.length - 1].day) + ')';
+  $('mwin2').textContent = range === 'day' ? 'Today (' + dd(win[0].day) + ')' : 'Last 7 days (' + dd(win[0].day) + ' to ' + dd(win[win.length - 1].day) + ')';
+  moneyGrid('mgrid_all', moneyWin(days)); moneyGrid('mgrid_win', moneyWin(win));
+  const rows = days.slice().reverse();
+  $('mdays').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${dd(r.day)}${r.rev_src === 'apple' ? '' : '<div class="sub">RC</div>'}</td><td class="n">${sgn(r.spend)}</td><td class="n">${sgn(r.gross)}</td><td class="n">${sgn(r.proceeds)}</td><td class="n ${cls(r.proceeds - r.spend)}">${sgn(r.proceeds - r.spend)}</td><td class="n ${cls(r.cum_net)}">${sgn(r.cum_net)}</td></tr>`).join('');
+  const all = moneyWin(days);
+  $('mdays').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sgn(all.spend)}</td><td class="n">${sgn(all.gross)}</td><td class="n">${sgn(all.proceeds)}</td><td class="n ${cls(all.proceeds - all.spend)}">${sgn(all.proceeds - all.spend)}</td><td class="n"></td></tr>`;
+  $('mnote').textContent = 'Revenue and "You keep" come from Apple\'s sales report for the days Apple has published (' + all.apple + ' of ' + days.length + ' days). Days marked RC are not published by Apple yet, so they come from RevenueCat (' + (all.est ? 'its figure for what you keep is partly estimated at 85%' : 'its own figure for what you keep') + '). Apple\'s days are Pacific time, one hour off Alaska\'s; the same date is used. Paying customers = first-time buyers (renewals are charges, not new customers). Revenue per install = revenue divided by all installs (Apple\'s new-download count where published, else people RevenueCat saw open the app). Ad cost and ad installs are from Apple Ads.';
+  if (typeof Chart === 'undefined') return;
+  if (cumChart) cumChart.destroy();
+  cumChart = new Chart($('cumchart'), { type: 'line', data: { labels: days.map((r) => dd(r.day)), datasets: [{ data: days.map((r) => r.cum_net), borderColor: css('--accent'), backgroundColor: css('--accent'), borderWidth: 2.5, pointRadius: 2, tension: 0.2 }] },
+    options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => 'Running: ' + sgn(c.parsed.y) } } },
+      scales: { x: { ticks: { color: css('--mute'), maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: css('--mute'), callback: (v) => sgn(v) }, grid: { color: css('--line') } } } } });
+}
+
+function funnelCard() {
+  const g = (((last.rc_funnel || {})[range]) || []);
+  const label = range === 'day' ? 'today' : 'last 7 days';
+  $('funlabel').textContent = 'Funnel (' + label + ')';
+  const T = $('fun');
+  if (!g.length || !g.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>'; $('funnote').textContent = ''; return; }
+  const steps = [
+    { k: 'installs', l: 'Installed', prev: null, ok: () => true },
+    { k: 'setup', l: 'Finished setup', prev: 'installs', ok: () => true },
+    { k: 'test_started', l: 'Started knowledge test', prev: 'setup', ok: (x) => x.tracks_test, sub: true },
+    { k: 'test_finished', l: 'Finished it', prev: 'test_started', ok: (x) => x.tracks_test, sub: true },
+    { k: 'saw_price', l: 'Saw a price', prev: 'setup', ok: () => true },
+    { k: 'tapped', l: 'Tapped buy', prev: 'saw_price', ok: (x) => x.tracks_tap },
+    { k: 'converted', l: 'Got a trial or bought', prev: 'tapped', ok: () => true },
+  ];
+  const pc = (n, d) => d ? Math.round(n / d * 100) + '%' : '–';
+  const prevFor = (st, x) => st.k === 'converted' && !x.tracks_tap ? 'saw_price' : st.prev;
+  T.tHead.innerHTML = '<tr><th>Step</th><th class="n">Total</th>' + g.map((x) => `<th class="n">${esc(({ v186: '1.8.6+', v185: '1.8.5', old: '1.8.4 and older' })[x.key] || x.label)}<div class="sub" style="font-weight:400">${x.installs} installs</div></th>`).join('') + '</tr>';
+  T.tBodies[0].innerHTML = steps.map((st) => {
+    const use = g.filter((x) => st.ok(x));
+    const n = use.reduce((t, x) => t + x[st.k], 0);
+    const dn = st.k === 'installs' ? 0 : use.reduce((t, x) => t + x[prevFor(st, x)], 0);
+    const all = use.length === g.length;
+    const tot = `<b>${n}</b>${dn ? `<span class="pc">${pc(n, dn)} kept</span>` : ''}${all ? '' : '<span class="pc">† partial</span>'}`;
+    const cells = g.map((x) => {
+      if (!st.ok(x)) return '<td class="n na">n/a (older app)</td>';
+      const num = x[st.k], d = st.k === 'installs' ? 0 : x[prevFor(st, x)];
+      const extra = st.k === 'test_started' && x.test_skipped ? `<span class="pc">${x.test_skipped} skipped it</span>` : '';
+      return `<td class="n c">${num}${d ? `<span class="pc">${pc(num, d)} kept</span>` : ''}${extra}</td>`;
+    }).join('');
+    return `<tr class="${st.sub ? 'sub' : ''}"><td>${esc(st.l)}${st.sub ? '<div class="sub">1.8.6 and newer only</div>' : ''}</td><td class="n c">${tot}</td>${cells}</tr>`;
+  }).join('');
+  $('funnote').textContent = 'New installs in the period, split by the app version they installed on (App Store installs only, same people as the Summary). Every step means "got at least this far", so people are never lost between rows; "kept" is the share of the step before. The knowledge test is optional and only exists in 1.8.6 and newer, so "Saw a price" is compared with "Finished setup", not with the test. "Tapped buy" is recorded from 1.8.5; older versions show n/a. † = the Total counts only the app versions that record that step. Finished setup = got past the plan screen (or shows any later sign). Saw a price = any paywall or one-tap buy card shown. Got a trial or bought = free trial started or a paid purchase.';
+}
+
+function termsDollars() {
+  const T = $('tsd');
+  const kws = ((last.ads_keywords || {})[range] || []);
+  const rc = (((last.rc_terms || {})[range]) || []);
+  const label = range === 'day' ? 'today' : 'last 7 days';
+  $('tsdlabel').textContent = 'Search terms to dollars (' + label + ')';
+  const by = {};
+  for (const k of kws) by[k.term.toLowerCase()] = { term: k.term, bid: k.bid, status: k.status, spend: k.spend, taps: k.taps, ai: k.installs, ri: 0, tr: 0, sa: 0, rev: 0 };
+  for (const r of rc) {
+    const key = r.term.toLowerCase(), x = by[key] || (by[key] = { term: r.term, bid: null, status: '', spend: 0, taps: 0, ai: 0, ri: 0, tr: 0, sa: 0, rev: 0, nospend: r.term === 'Organic' || r.term === 'Ad (no keyword)' });
+    x.ri = r.installs; x.tr = r.trials; x.sa = r.sales; x.rev = r.revenue;
+  }
+  const all = Object.values(by);
+  const live = all.filter((x) => x.spend > 0 || x.taps > 0 || x.ai > 0 || x.ri > 0 || x.tr > 0 || x.sa > 0);
+  live.sort((a, b) => (a.term === 'Organic') - (b.term === 'Organic') || b.spend - a.spend || b.ri - a.ri);
+  const quiet = all.length - live.length;
+  if (!live.length) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No data yet</td></tr>'; T.tFoot.innerHTML = ''; $('tsdnote').textContent = ''; return; }
+  T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Bid</th><th class="n">Spent</th><th class="n">Taps</th><th class="n">Apple inst.</th><th class="n">RC inst.</th><th class="n">Trials</th><th class="n">Sales</th><th class="n">Revenue</th><th class="n">Per inst.</th><th class="n">Per sale</th></tr>';
+  const row = (x) => { const free = x.nospend || x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(x.term)}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
+  T.tBodies[0].innerHTML = live.map(row).join('');
+  const ad = live.filter((x) => x.term !== 'Organic'), sum = (f, a) => a.reduce((t, x) => t + f(x), 0);
+  T.tFoot.innerHTML = `<tr><td>All ads</td><td class="n"></td><td class="n">${money(sum((x) => x.spend, ad))}</td><td class="n">${sum((x) => x.taps, ad)}</td><td class="n">${sum((x) => x.ai, ad)}</td><td class="n">${sum((x) => x.ri, ad)}</td><td class="n">${sum((x) => x.tr, ad)}</td><td class="n">${sum((x) => x.sa, ad)}</td><td class="n">${money(sum((x) => x.rev, ad))}</td><td class="n">${sum((x) => x.ai, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.ai, ad)) : '–'}</td><td class="n">${sum((x) => x.sa, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.sa, ad)) : '–'}</td></tr>`;
+  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Organic = no ad attribution, no spend.' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
+}
+
+// ---- upcoming bills
+function billsCard() {
+  const b = last.bills;
+  if (!b) { $('bsum').textContent = 'Not connected yet.'; return; }
+  const up = (b.upcoming || []).concat(b.waiting || []);
+  $('bsum').innerHTML = b.expected_count ? `Expected: <b>${money(b.expected_gross)}</b> from ${b.expected_count} charge${b.expected_count > 1 ? 's' : ''} set to renew (you keep about ${money(b.expected_net)}).` : 'No charges are set to go through in the next 7 days.';
+  $('bup').tBodies[0].innerHTML = up.length ? up.map((r) => `<tr><td>${esc(r.when)}</td><td>${esc(r.kind)}<div class="sub">#${esc(r.user)} · ${esc(r.product)}</div></td><td class="n">${r.amount ? money(r.amount) : '–'}${r.period ? '<div class="sub">per ' + esc(r.period) + '</div>' : ''}</td><td class="${r.will_charge ? 'up' : 'down'}">${esc(r.state)}</td></tr>`).join('') : '<tr><td>None in the next 7 days</td></tr>';
+  const h = b.history || [], t = b.tally || {};
+  $('btally').textContent = h.length ? `${t.charged || 0} charged · ${t.failed || 0} failed · ${t['billing issue'] || 0} billing issue · ${t.ended || 0} ended with no charge` : 'Nothing has come due yet.';
+  const chip = (r) => `<span class="chip ${r === 'charged' ? 'charged' : r === 'ended' ? 'ended' : r === 'failed' ? 'failed' : 'issue'}">${r === 'charged' ? 'charged' : r === 'ended' ? 'no charge' : r === 'failed' ? 'FAILED' : 'billing issue'}</span>`;
+  $('bhist').tBodies[0].innerHTML = h.length ? h.map((o) => `<tr><td>${esc(o.when)}</td><td>${esc(o.kind)}<div class="sub">#${esc(o.user)}</div></td><td>${chip(o.result)}</td><td class="n">${o.result === 'charged' ? money(o.amount) : o.amount ? '<span class="sub">' + money(o.amount) + ' due</span>' : '–'}</td></tr><tr><td colspan="4" class="sub" style="border-top:0;padding-top:0">${esc(o.note)}</td></tr>`).join('') : '';
+  $('bnote').textContent = 'Real App Store subscriptions only (our own test purchases are left out). Times are Alaska time. "Will charge" = set to renew; "cancelled" = access ends then, nothing is charged. After the date passes the outcome comes from RevenueCat: charged (the period moved on and money came in), FAILED (it was set to renew but ended with no charge), billing issue (Apple could not take the payment), or no charge (cancelled earlier, ended as planned). For entries from before this was tracked, the reason a trial ended without a charge is unknown (cancelled or failed). Expected amounts use the plan\'s current price; "you keep" assumes Apple takes 15%. Checked ' + (b.updated ? ago(b.updated) : '') + '.';
+}
+
+// ---- trends
+const charts = {};
+const markerPlugin = { id: 'markers', afterDatasetsDraw(chart, args, opts) {
+  const items = opts.items || [], ctx = chart.ctx, area = chart.chartArea, labels = chart.data.labels, byDay = {};
+  items.forEach((m) => { const i = labels.indexOf(m.date); if (i >= 0) (byDay[i] = byDay[i] || []).push(m.n); });
+  ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = css('--mute'); ctx.font = '600 10px -apple-system,sans-serif'; ctx.textAlign = 'center';
+  Object.entries(byDay).forEach(([i, ns]) => {
+    const x = chart.scales.x.getPixelForValue(Number(i));
+    ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(x, area.top); ctx.lineTo(x, area.bottom); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = css('--ink'); ctx.fillText(ns.length > 1 ? ns[0] + '–' + ns[ns.length - 1] : String(ns[0]), x, area.top - 4);
+  });
+  ctx.restore();
+} };
+function trendChart(id, t, series, fmt) {
+  if (typeof Chart === 'undefined') return;
+  if (charts[id]) charts[id].destroy();
+  const ds = [];
+  series.forEach(([ln, color]) => {
+    ds.push({ label: ln.name, data: ln.values, borderColor: color, backgroundColor: color, borderWidth: 1.5, pointRadius: 2.5, tension: 0, spanGaps: false });
+    ds.push({ label: ln.name + ' (7-day avg)', data: ln.avg7, borderColor: color, borderWidth: 3.5, borderDash: [6, 3], pointRadius: 0, tension: 0.25, spanGaps: true });
+  });
+  const mk = last.markers_n || [];
+  charts[id] = new Chart($(id), { type: 'line', data: { labels: t.labels, datasets: ds }, plugins: [markerPlugin],
+    options: { animation: false, responsive: true, maintainAspectRatio: false, layout: { padding: { top: 16 } },
+      plugins: { legend: { labels: { color: css('--mute'), boxWidth: 14, font: { size: 11 } } }, markers: { items: mk },
+        tooltip: { callbacks: { label: (c) => c.dataset.label + ': ' + (c.parsed.y == null ? '–' : fmt(c.parsed.y)), afterBody: (cs) => mk.filter((m) => m.date === cs[0].label).map((m) => m.n + '. ' + m.label) } } },
+      scales: { x: { ticks: { color: css('--mute'), maxTicksLimit: 7, callback: function (v) { return dd(this.getLabelForValue(v)); } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: css('--mute'), callback: (v) => fmt(v) }, grid: { color: css('--line') } } } } });
+}
+function trendsCard() {
+  const t = last.trends;
+  if (!t || !(t.labels || []).length) { $('trnote').textContent = 'No data yet.'; return; }
+  const labs = t.labels, first = labs[0], lastd = labs[labs.length - 1];
+  last.markers_n = (last.markers || []).map((m, i) => Object.assign({ n: i + 1 }, m));
+  const inRange = last.markers_n.filter((m) => m.date >= first && m.date <= lastd);
+  const cA = css('--accent'), cG = css('--good'), cO = '#f59e0b', cP = '#db2777';
+  trendChart('tr_inst', t, [[t.installs[0], cA], [t.installs[1], cG]], (v) => String(Math.round(v * 10) / 10));
+  trendChart('tr_cpi', t, [[t.cpi[0], cP]], (v) => sgn(v));
+  trendChart('tr_conv', t, [[t.conv[0], cA], [t.conv[1], cO]], (v) => String(Math.round(v * 10) / 10));
+  const gr = (lines) => lines.map((l) => `<div><span class="chip ${l.grade === 'too early' ? 'early' : l.grade}">${esc(l.grade)}</span>${esc(l.name)}: ${esc(l.why)}</div>`).join('');
+  $('gr_inst').innerHTML = gr(t.installs); $('gr_cpi').innerHTML = gr(t.cpi); $('gr_conv').innerHTML = gr(t.conv);
+  $('mklist').innerHTML = inRange.map((m) => `<div class="mk"><b>${m.n}</b>${dd(m.date)}${m.time_ak ? ' ' + esc(m.time_ak) : ''} · ${esc(m.label)}<span class="sub"> ${esc(m.detail || '')}</span></div>`).join('') || '<p class="note">No changes logged in this period.</p>';
+  $('trnote').textContent = 'One chart per measure, finished days only (today is still in progress). Thin line = each day; thick dashed line = 7-day average (fewer days at the start). Numbers on the dashed vertical lines match the list above; a change shows up in the numbers a day or more later. Ads installs and cost are Apple Ads; organic = Apple\'s new downloads minus ad installs (Apple publishes a day the next morning, so the newest day has no organic yet); trials and charges are real App Store ones. Grades: ' + (t.rule || '');
+}
+
+// ---- ratings and reviews
+function reviewsCard() {
+  const r = last.reviews;
+  if (!r) { $('rvhead').innerHTML = '<p class="note">Not connected yet.</p>'; return; }
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+  $('rvhead').innerHTML = r.rating_count != null ? `<div class="grid" style="grid-template-columns:repeat(2,1fr)"><div><div class="big">${Number(r.rating_avg).toFixed(1)} <span style="color:#f59e0b;font-size:20px">★</span></div><div class="l">Average rating (US)</div></div><div><div class="big">${r.rating_count}</div><div class="l">Ratings${r.version ? ' · current version ' + esc(r.version) + ': ' + (r.rating_count_version ?? '–') : ''}</div></div></div>` : '<p class="note">Rating not available right now.</p>';
+  const list = r.reviews || [];
+  $('rvlist').innerHTML = list.length ? list.map((x) => `<div class="rv"><div class="top" style="display:flex;justify-content:space-between;gap:8px"><span><span class="st">${stars(x.stars)}</span> <b>${esc(x.title)}</b></span><span class="upd">${esc(String(x.date).slice(5, 10))}${x.new ? ' <span class="chip new">NEW</span>' : ''}</span></div><div>${esc(x.text)}</div><div class="sub">${esc(x.nick)}${x.territory ? ' · ' + esc(x.territory) : ''}</div></div>`).join('') : '<p class="note">No written reviews yet.</p>';
+  $('rvnote').textContent = 'Rating count and average: Apple\'s public listing (US store). Reviews: App Store Connect, newest first (' + list.length + ' written so far; many ratings have no written review). Refreshed every 6 hours, last ' + (r.fetched ? ago(r.fetched) : '') + (r.stale ? ' (could not refresh, showing the last saved list)' : '') + '. NEW = posted in the last 3 days or not in the previous list.';
+}
+
 let filt = 'all';
 document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
 function tagsFor(p) {
@@ -334,7 +585,8 @@ async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     $('upd').textContent = 'Updated ' + ago(d.updated);
-    last = d; summary(); agesTable(); versionsTable(); adsByAge();
+    last = d; summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard();
+    try { moneyCard(); trendsCard(); } catch (e) {}
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
@@ -362,9 +614,9 @@ async function load() {
 }
 $('reload').onclick = load;
 const links = [...document.querySelectorAll('nav a')];
-const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => a.classList.toggle('on', a.hash === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
-['ads', 'terms', 'rank', 'users'].forEach((id) => spy.observe($(id)));
-load(); setInterval(load, 120000);
+const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => { const on = a.hash === '#' + (e.target.id === 'termsd' ? 'terms' : e.target.id); a.classList.toggle('on', on); if (on) { const nv = a.parentNode; nv.scrollLeft = a.offsetLeft - nv.clientWidth / 2 + a.clientWidth / 2; } }); }), { rootMargin: '-40% 0px -55% 0px' });
+['ads', 'money', 'funnel', 'terms', 'termsd', 'bills', 'trends', 'reviews', 'rank', 'users'].forEach((id) => spy.observe($(id)));
+document.addEventListener('DOMContentLoaded', load); setInterval(load, 120000);  // Chart.js (deferred) is ready by DOMContentLoaded
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 </script>
 </body>
