@@ -45,7 +45,7 @@ td.n,th.n{text-align:right}
 .person .top{display:flex;justify-content:space-between;gap:8px;font-weight:600}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
-.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
+.tag.tap{background:#f59e0b;color:#1f1300}.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
 .tag.weekly,.tag.monthly,.tag.yearly{background:var(--good);color:#04130a}.tag.pass{background:#a855f7;color:#fff}.tag.expired{background:#6b7280;color:#fff}
 .plan{font-size:13px;margin-top:3px;font-weight:550}.plan.pass{color:#a855f7}.plan.sub{color:var(--good)}.plan.trial{color:var(--accent)}.plan.off{color:var(--mute)}
 #hist td,#hist th{font-size:13.5px;white-space:nowrap}
@@ -54,6 +54,8 @@ td.n,th.n{text-align:right}
 #ages tr.zero td{color:var(--mute)}
 #aba td,#aba th{font-size:13px;padding:7px 5px;white-space:nowrap}
 #aba td:first-child,#aba th:first-child{white-space:normal;min-width:96px;max-width:150px;position:sticky;left:0;background:var(--card,var(--bg))}
+#vers td,#vers th{font-size:13.5px;padding:7px 3px}
+#vers tfoot td{font-weight:650;border-top:2px solid var(--line)}
 #aba tfoot td{font-weight:650;border-top:2px solid var(--line)}
 #ages tfoot td{font-weight:650;border-top:2px solid var(--line)}
 .up{color:var(--good)}.down{color:var(--bad)}
@@ -93,9 +95,11 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
 <tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
 <tr><td>Purchases</td><td class="n" id="s_p_a">–</td><td class="n" id="s_p_o">–</td><td class="n" id="s_p_t">–</td></tr>
+<tr><td>Tapped buy, didn't finish</td><td class="n" id="s_b_a">–</td><td class="n" id="s_b_o">–</td><td class="n" id="s_b_t">–</td></tr>
 <tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
 </tbody></table>
 <p class="note" style="margin-top:8px;font-size:12px">Counted from RevenueCat, App Store installs only. Organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count above.</p>
+<p class="note" style="margin-top:8px;font-size:12px">"Tapped buy, didn't finish" = tapped buy on a RevenueCat paywall but has no trial and no purchase. Tracked on RevenueCat paywalls since 1.8.5; the reason (cancelled, failed, waiting for a parent) isn't recorded yet.</p>
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
@@ -106,6 +110,12 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <h3 id="abalabel" style="margin:18px 0 8px;font-size:15px">Ads by age</h3>
 <div style="overflow-x:auto"><table id="aba"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
 <p class="note" id="abanote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="vercard">
+<h2 id="verlabel">By version</h2>
+<table id="vers"><thead><tr><th>Installed on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card" id="terms">
@@ -196,6 +206,7 @@ function summary() {
   const has = rc.organic_users != null && rc.organic_trials != null;
   sp('i', has ? rc.ad_users : null, has ? rc.organic_users : null); sp('t', has ? rc.ad_trials : null, has ? rc.organic_trials : null);
   sp('p', has ? rc.ad_purchases : null, has ? rc.organic_purchases : null);
+  sp('b', rc.tapped_buy != null ? rc.ad_tapped_buy : null, rc.tapped_buy != null ? rc.organic_tapped_buy : null);
   $('s_r_a').textContent = has ? money(rc.ad_revenue) : '–'; $('s_r_o').textContent = has ? money(rc.organic_revenue) : '–'; $('s_r_t').textContent = has ? money(rc.ad_revenue + rc.organic_revenue) : '–';
   $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
   document.querySelectorAll('#ads .seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
@@ -203,7 +214,7 @@ function summary() {
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); adsByAge(); people(); });
+document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); people(); });
 function agesTable() {
   const rows = ((last.rc_ages || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -218,6 +229,16 @@ function agesTable() {
   const tsub = [tp.w && tp.w + ' wk', tp.m && tp.m + ' mo', tp.p && tp.p + ' pass', tp.o && tp.o + ' other'].filter(Boolean).join(' · ');
   $('ages').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${all}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}${tsub ? `<div class="sub" style="font-weight:400">${esc(tsub)}</div>` : ''}</td><td class="n">${all ? '100%' : '–'}</td></tr>`;
   $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Ads and Organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
+}
+function versionsTable() {
+  const rows = ((last.rc_versions || {})[range]) || [];
+  const label = range === 'day' ? 'today' : 'last 7 days';
+  $('verlabel').textContent = 'By version (' + label + ')';
+  if (!rows.length) { $('vers').tBodies[0].innerHTML = '<tr><td colspan="7">No data yet</td></tr>'; $('vers').tFoot.innerHTML = ''; $('vernote').textContent = ''; return; }
+  const sum = (k) => rows.reduce((t, r) => t + (r[k] || 0), 0);
+  $('vers').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${r.version === 'none' ? 'Not recorded' : 'v' + esc(r.version)}</td><td class="n">${r.installs}</td><td class="n">${r.ads}</td><td class="n">${r.organic}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td><td class="n">${r.tapped_buy}</td></tr>`).join('');
+  $('vers').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sum('installs')}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}</td><td class="n">${sum('tapped_buy')}</td></tr>`;
+  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person (the version they installed on). People first seen before we started recording this have their oldest known version, which can be later than the one they installed (marked with ≈ on their row). Counted like the Ages table: Installs, Ads and Organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = tapped buy on a RevenueCat paywall (tracked since 1.8.5), no trial, no purchase.';
 }
 function adsByAge() {
   const d = ((last.rc_ads_by_age || {})[range]) || null;
@@ -238,9 +259,10 @@ let filt = 'all';
 document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { filt = b.dataset.f; document.querySelectorAll('#ufilter button').forEach((x) => x.classList.toggle('on', x === b)); people(); });
 function tagsFor(p) {
   const t = (c, x) => `<span class="tag ${c}">${esc(x)}</span>`;
-  if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '');
+  const tap = p.tapped_buy ? t('tap', 'tapped buy') : '';
+  if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '') + tap;
   if (p.plan_kind === 'pass') return t('pass', 'pass');
-  if (p.plan_state === 'expired') return t('expired', 'expired');
+  if (p.plan_state === 'expired') return t('expired', 'expired') + tap;
   return (p.trialing ? t('trial', 'trial') : t(p.plan_kind, p.plan_kind)) + (p.plan_state === 'cancelled' ? t('cx', 'cancelled') : '');
 }
 function planLine(p) {
@@ -258,6 +280,16 @@ function planLine(p) {
   return `<div class="plan ${c}">${txt}</div>`;
 }
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function versionLine(p) {
+  const v = (x, ap) => 'v' + esc(x) + (ap ? ' ≈' : '');
+  const bits = [];
+  if (p.app_version) bits.push('App ' + v(p.app_version) + ' now');
+  if (p.first_app_version) bits.push('Installed on ' + v(p.first_app_version, p.first_app_version_approx));
+  if (p.purchase_app_version) bits.push('Bought on ' + v(p.purchase_app_version, p.purchase_app_version_approx));
+  else if (p.trial_app_version) bits.push('Trial started on ' + v(p.trial_app_version, p.trial_app_version_approx));
+  if (p.tapped_buy) bits.push('Tapped buy' + (p.tapped_at ? ' ' + esc(p.tapped_at) : '') + ', did not finish');
+  return bits.length ? `<div class="meta">${bits.join(' · ')}</div>` : '';
+}
 function people() {
   const d = last, t = (d.rc_totals || {})[range];
   if (!t) { $('rc').textContent = 'Not connected yet.'; return; }
@@ -269,6 +301,7 @@ function people() {
   $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${tagsFor(p)}</span></div>
 <div class="meta">First ${esc(p.first)} · last ${esc(p.last)}${p.state ? ' · ' + esc(p.state) : ''}${p.license ? ' · ' + esc(p.license) : ''}${p.age ? ' · age ' + esc(p.age) : ''}${p.days_to_test ? ' · test in ' + esc(p.days_to_test) + ' d' : ''}</div>
 <div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
+${versionLine(p)}
 ${(p.payer || p.heard_from || p.drivers_ed) ? `<div class="meta">${p.payer ? 'paid by ' + esc(p.payer === 'parent' ? 'a parent' : 'self') : ''}${p.heard_from ? (p.payer ? ' · ' : '') + 'heard from ' + esc(String(p.heard_from).replace('_', ' ')) : ''}${p.drivers_ed ? ' · drivers ed: ' + esc(p.drivers_ed) : ''}</div>` : ''}
 ${(p.mocks_passed || p.real_test) ? `<div class="meta">${p.mocks_passed ? esc(p.mocks_passed) + ' mock exams passed' : ''}${p.real_test ? (p.mocks_passed ? ' · ' : '') + 'real test: ' + esc(p.real_test) + (p.real_test_score ? ' (score ' + esc(p.real_test_score) + ')' : '') : ''}</div>` : ''}
 ${p.plan_state ? planLine(p) : (p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' + (p.cancelled ? ' (will not bill: cancelled)' : '') : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : '')}
@@ -300,7 +333,7 @@ async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     $('upd').textContent = 'Updated ' + ago(d.updated);
-    last = d; summary(); agesTable(); adsByAge();
+    last = d; summary(); agesTable(); versionsTable(); adsByAge();
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
