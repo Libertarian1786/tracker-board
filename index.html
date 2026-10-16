@@ -166,6 +166,7 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <h2 id="verlabel">By version</h2>
 <table id="vers"><thead><tr><th>Installed on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
 <p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
+<details id="exclnote" style="margin-top:8px;font-size:12px;display:none"><summary id="exclsum" style="cursor:pointer;color:var(--mute)"></summary><div id="excllist" class="note" style="margin-top:6px"></div></details>
 </section>
 
 <section class="card" id="funnel">
@@ -362,6 +363,12 @@ function agesTable() {
   $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Ads and Organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
 }
 function versionsTable() {
+  try {
+    const ex = last.rc_excluded || [];
+    $('exclnote').style.display = ex.length ? '' : 'none';
+    $('exclsum').textContent = 'Excluded: Apple review devices (' + ex.length + ')';
+    $('excllist').innerHTML = ex.map((x) => esc(x.user) + ' · v' + esc(x.version) + ' · ' + esc(x.state) + ' · first seen ' + esc(x.first) + ' · ' + esc(x.why)).join('<br>') + '<br>Left out of every count and table on this page.';
+  } catch (e) {}
   const rows = ((last.rc_versions || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
   $('verlabel').textContent = 'By version (' + label + ')';
