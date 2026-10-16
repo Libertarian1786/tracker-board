@@ -100,16 +100,39 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 #conv tfoot td{font-weight:650;border-top:2px solid var(--line)}
 #conv td:first-child{white-space:normal}
 .cxl{color:var(--bad)}
+.arvban{display:none;margin:0 0 12px;padding:12px 14px;border-radius:12px;background:#f59e0b;color:#1f1300;font-weight:700;font-size:15px;box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.arvban.on{display:block}
+.arvban a{color:inherit;text-decoration:underline}
+#arvbox .st{font-size:15px;font-weight:650;margin:0 0 10px}
+#arvbox .st.now{color:#b45309}
+#arvbox h3{margin:14px 0 6px;font-size:14px}
+#arvbox td,#arvbox th{font-size:13.5px;padding:6px 4px}
+#arvbox .sub{font-size:11.5px;color:var(--mute);font-weight:400}
+.chip.arv-now{background:#f59e0b;color:#1f1300}.chip.arv-wait{background:var(--accent);color:#fff}.chip.arv-ok{background:var(--good);color:#04130a}.chip.arv-bad{background:var(--bad);color:#fff}.chip.arv-off{background:#6b7280;color:#fff}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
 <body>
 <main>
+<div class="arvban" id="arvban" role="status"></div>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
 <p class="upd" style="margin:-4px 0 8px"><b>Times are Italy time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
 <p class="upd" style="margin:-4px 0 8px"><a href="#" id="showall">Show all</a><span id="hidcount"></span> <span>· each section has a Hide button at its top right; hidden sections stay hidden after a refresh</span></p>
-<nav><a href="#ads" class="on">Summary</a><a href="#money">Money</a><a href="#funnel">Funnel</a><a href="#terms">Terms</a><a href="#bills">Bills</a><a href="#trends">Trends</a><a href="#reviews">Reviews</a><a href="#rank">Rank</a><a href="#users">Users</a></nav>
+<nav><a href="#arvbox">Apple review</a><a href="#ads" class="on">Summary</a><a href="#money">Money</a><a href="#funnel">Funnel</a><a href="#terms">Terms</a><a href="#bills">Bills</a><a href="#trends">Trends</a><a href="#reviews">Reviews</a><a href="#rank">Rank</a><a href="#users">Users</a></nav>
 <div class="cols"><div>
+
+<section class="card" id="arvbox" data-title="Apple review">
+<h2>Apple review</h2>
+<p class="st" id="arvstatus">Loading…</p>
+<div style="overflow-x:auto"><table id="arvv"><thead><tr><th>Version</th><th>App Store state</th><th>Since</th></tr></thead><tbody></tbody></table></div>
+<h3>Review submissions</h3>
+<div style="overflow-x:auto"><table id="arvs"><thead><tr><th>Submitted</th><th>State</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<h3>State changes seen</h3>
+<div id="arvc" class="note" style="font-size:13px"></div>
+<h3>Reviewer activity</h3>
+<div style="overflow-x:auto"><table id="arva"><thead><tr><th>Last opened</th><th>Version</th><th>What they did</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="arvnote" style="margin-top:8px;font-size:12px"></p>
+</section>
 
 <section class="card" id="ads" data-title="Summary">
 <div class="seg" role="tablist"><button data-r="day" class="on">Today</button><button data-r="week">This week</button></div>
@@ -707,12 +730,39 @@ function rankHistory(h) {
   }).join('');
   $('hist').tHead.innerHTML = head; $('hist').tBodies[0].innerHTML = rowsH;
 }
+function appleReviewCard() {
+  const r = last.apple_review, ban = $('arvban');
+  if (!r) { $('arvstatus').textContent = 'No Apple review data yet.'; ban.className = 'arvban'; return; }
+  const cls = (st, active) => active ? 'arv-now' : /^(READY_FOR_SALE|REPLACED|PENDING|PROCESSING|ACCEPTED|COMPLETE)/.test(st) ? 'arv-ok' : /REJECT|INVALID|UNRESOLVED/.test(st) && !/DEVELOPER/.test(st) ? 'arv-bad' : /WAITING/.test(st) ? 'arv-wait' : 'arv-off';
+  const inRev = (r.versions || []).filter((v) => v.state === 'IN_REVIEW'), waiting = (r.versions || []).filter((v) => v.state === 'WAITING_FOR_REVIEW');
+  const subIn = (r.submissions || []).some((s) => s.state === 'IN_REVIEW'), subWait = (r.submissions || []).some((s) => s.state === 'WAITING_FOR_REVIEW');
+  const act = (r.activity || []).filter((a) => a.last_ms);
+  const recent = act.filter((a) => Date.now() - a.last_ms <= 30 * 60000);
+  const lastAct = act[0];
+  const hhmm = (ms) => clock(ms).slice(-5);
+  // banner: (a) any version In review, or (b) a reviewer device active in the last 30 minutes
+  let bt = '';
+  if (inRev.length || recent.length) {
+    const vs = inRev.length ? inRev.map((v) => v.version) : [...new Set(recent.map((a) => a.version).filter(Boolean))];
+    bt = 'Apple is reviewing ' + (vs.length ? vs.join(', ') : 'the app') + ' now' + (lastAct ? ' — reviewer last active ' + hhmm(lastAct.last_ms) : '');
+  }
+  ban.className = 'arvban' + (bt ? ' on' : ''); ban.innerHTML = bt ? esc(bt) + ' · <a href="#arvbox">details</a>' : '';
+  const stat = bt ? bt : (waiting.length || subWait) ? 'Waiting for review' + (waiting.length ? ': ' + waiting.map((v) => v.version).join(', ') : '') + '. Apple has not started yet.'
+    : 'No version is waiting or in review right now.' + (lastAct ? ' Last reviewer device activity: ' + lastAct.last + ' (v' + esc(lastAct.version) + ').' : '');
+  $('arvstatus').textContent = stat; $('arvstatus').className = 'st' + (bt ? ' now' : '');
+  const since = (v) => !v.when ? '' : v.exact ? esc(v.when) + ' <span class="sub">first seen</span>' : /already/.test(v.note) ? '<span class="sub">before ' + esc(v.when) + ' (when tracking began)</span>' : esc(v.when) + ' <span class="sub">' + esc(v.note) + '</span>';
+  $('arvv').tBodies[0].innerHTML = (r.versions || []).map((v) => `<tr><td>v${esc(v.version)}</td><td><span class="chip ${cls(v.state, v.active)}">${esc(v.label)}</span></td><td>${since(v)}</td></tr>`).join('') || '<tr><td colspan="3">No data yet</td></tr>';
+  $('arvs').tBodies[0].innerHTML = (r.submissions || []).map((s) => `<tr><td>${esc(s.submitted)}</td><td><span class="chip ${cls(s.state, s.active)}">${esc(s.label)}</span></td><td>${esc((s.items || []).join(', ') || '–')}${s.seen ? `<div class="sub">state first seen ${esc(s.seen)}</div>` : ''}</td></tr>`).join('') || '<tr><td colspan="3">None</td></tr>';
+  $('arvc').innerHTML = (r.changes || []).length ? r.changes.map((c) => esc(c.at) + ' · ' + (c.kind === 'version' ? 'v' : '') + esc(c.what) + ' → <b>' + esc(c.label) + '</b>').join('<br>') : 'No change seen since tracking began (Oct 16). New changes appear here with the time they were first seen.';
+  $('arva').tBodies[0].innerHTML = act.length ? act.map((a) => `<tr><td>${esc(a.last)}${Date.now() - a.last_ms <= 30 * 60000 ? ' <span class="chip arv-now">active now</span>' : ''}<div class="sub">${esc(a.state || '')}</div></td><td>${a.version ? 'v' + esc(a.version) : '–'}<div class="sub">${a.kind === 'review device' ? 'Apple review device' : 'unreleased version'}</div></td><td>${esc((a.actions || []).join('; ') || 'opened the app only')}</td></tr>`).join('') : '<tr><td colspan="3">No reviewer device seen</td></tr>';
+  $('arvnote').textContent = 'App Store Connect state checked ' + r.checked + ' (re-checked about every 5 minutes; Apple gives no timestamp for state changes, so "first seen" is when this tracker noticed). Reviewer activity = Apple review test devices (first seen on a version before it was public, or on one that was never released) plus anyone on a not-yet-released version; they are left out of all other counts. The banner at the top shows when any version is In review or a reviewer device was active in the last 30 minutes.';
+}
 async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     DZ = d.display_tz || DZ;
     $('upd').textContent = 'Updated ' + ago(d.updated) + ' (' + clock(Date.parse(d.updated)) + ')';
-    last = d; summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
+    last = d; try { appleReviewCard(); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
     try { moneyCard(); trendsCard(); } catch (e) {}
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
