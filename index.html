@@ -125,6 +125,9 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
 <div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
 </div>
+<h2 style="margin-top:14px">By campaign</h2>
+<div style="overflow-x:auto"><table id="camps"><thead><tr><th>Campaign</th><th class="n">Spent</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Per inst.</th></tr></thead><tbody><tr><td colspan="6">No data yet</td></tr></tbody><tfoot></tfoot></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Every campaign in the Apple Ads account is counted in the numbers above; this splits them by campaign and placement. Follows the Today / This week switch. Paused campaigns with no activity in the period are hidden.</p>
 <h2 style="margin-top:14px">Ads vs organic</h2>
 <table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Organic</th><th class="n">Total</th></tr></thead><tbody>
 <tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
@@ -316,6 +319,13 @@ function summary() {
   $('s_r_a').textContent = has ? money(rc.ad_revenue) : '–'; $('s_r_o').textContent = has ? money(rc.organic_revenue) : '–'; $('s_r_t').textContent = has ? money(rc.ad_revenue + rc.organic_revenue) : '–';
   $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
   document.querySelectorAll('#ads .seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
+  const cr = ((d.ads_campaigns || {}).rows || []).map((c) => Object.assign({}, c, { p: c[range] || { spend: 0, impressions: 0, taps: 0, installs: 0 } }))
+    .filter((c) => c.status === 'ENABLED' || c.p.spend || c.p.impressions || c.p.taps || c.p.installs).sort((x, y) => y.p.spend - x.p.spend || y.p.impressions - x.p.impressions);
+  if (cr.length) {
+    $('camps').tBodies[0].innerHTML = cr.map((c) => `<tr class="${c.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(c.name)}<div class="sub">${esc(c.placement)}${c.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${money(c.p.spend)}</td><td class="n">${c.p.impressions}</td><td class="n">${c.p.taps}</td><td class="n">${c.p.installs}</td><td class="n">${c.p.installs ? money(c.p.spend / c.p.installs) : '–'}</td></tr>`).join('');
+    const ct = cr.reduce((t, c) => ({ spend: t.spend + c.p.spend, impressions: t.impressions + c.p.impressions, taps: t.taps + c.p.taps, installs: t.installs + c.p.installs }), { spend: 0, impressions: 0, taps: 0, installs: 0 });
+    $('camps').tFoot.innerHTML = `<tr><td>All campaigns</td><td class="n">${money(ct.spend)}</td><td class="n">${ct.impressions}</td><td class="n">${ct.taps}</td><td class="n">${ct.installs}</td><td class="n">${ct.installs ? money(ct.spend / ct.installs) : '–'}</td></tr>`;
+  } else { $('camps').tBodies[0].innerHTML = '<tr><td colspan="6">No data yet</td></tr>'; $('camps').tFoot.innerHTML = ''; }
   const kws = ((d.ads_keywords || {})[range] || []).slice().sort((x, y) => y.taps - x.taps || y.impressions - x.impressions);
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
@@ -481,8 +491,14 @@ function termsDollars() {
     const key = r.term.toLowerCase(), x = by[key] || (by[key] = { term: r.term, bid: null, status: '', spend: 0, taps: 0, ai: 0, ri: 0, tr: 0, sa: 0, rev: 0, nospend: r.term === 'Organic' || r.term === 'Ad (no keyword)' });
     x.ri = r.installs; x.tr = r.trials; x.sa = r.sales; x.rev = r.revenue;
   }
+  // Search tab campaigns have no keywords: one row for all of them (Apple's numbers only, no search-term attribution in RevenueCat).
+  const tabs = ((last.ads_campaigns || {}).rows || []).filter((c) => (c.sources || []).includes('APPSTORE_SEARCH_TAB'));
+  if (tabs.length) {
+    const tp = tabs.reduce((t, c) => { const q = c[range] || {}; return { spend: t.spend + (q.spend || 0), taps: t.taps + (q.taps || 0), ai: t.ai + (q.installs || 0) }; }, { spend: 0, taps: 0, ai: 0 });
+    by['~search tab'] = { term: 'Search tab (no keywords)', bid: null, status: '', spend: tp.spend, taps: tp.taps, ai: tp.ai, ri: 0, tr: 0, sa: 0, rev: 0, always: true };
+  }
   const all = Object.values(by);
-  const live = all.filter((x) => x.spend > 0 || x.taps > 0 || x.ai > 0 || x.ri > 0 || x.tr > 0 || x.sa > 0);
+  const live = all.filter((x) => x.always || x.spend > 0 || x.taps > 0 || x.ai > 0 || x.ri > 0 || x.tr > 0 || x.sa > 0);
   live.sort((a, b) => (a.term === 'Organic') - (b.term === 'Organic') || b.spend - a.spend || b.ri - a.ri);
   const quiet = all.length - live.length;
   if (!live.length) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No data yet</td></tr>'; T.tFoot.innerHTML = ''; $('tsdnote').textContent = ''; return; }
@@ -491,7 +507,7 @@ function termsDollars() {
   T.tBodies[0].innerHTML = live.map(row).join('');
   const ad = live.filter((x) => x.term !== 'Organic'), sum = (f, a) => a.reduce((t, x) => t + f(x), 0);
   T.tFoot.innerHTML = `<tr><td>All ads</td><td class="n"></td><td class="n">${money(sum((x) => x.spend, ad))}</td><td class="n">${sum((x) => x.taps, ad)}</td><td class="n">${sum((x) => x.ai, ad)}</td><td class="n">${sum((x) => x.ri, ad)}</td><td class="n">${sum((x) => x.tr, ad)}</td><td class="n">${sum((x) => x.sa, ad)}</td><td class="n">${money(sum((x) => x.rev, ad))}</td><td class="n">${sum((x) => x.ai, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.ai, ad)) : '–'}</td><td class="n">${sum((x) => x.sa, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.sa, ad)) : '–'}</td></tr>`;
-  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Organic = no ad attribution, no spend.' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
+  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Organic = no ad attribution, no spend. "Search tab (no keywords)" = all Search tab campaigns together: they have no keywords, so only Apple\'s spent, taps and installs are shown for them (their installs show in RevenueCat under "Ad (no keyword)" if attributed).' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
 }
 
 // ---- upcoming bills
