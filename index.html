@@ -46,6 +46,7 @@ td.n,th.n{text-align:right}
 .person .meta{color:var(--mute);font-size:12.5px;margin-top:2px}
 .tag{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:4px}
 .tapsaw{color:#db2777;font-weight:700;font-size:12px}
+.gbody>.card{min-width:0}#insbody td{font-size:13.5px;vertical-align:top}#insbody td:first-child{white-space:nowrap;color:var(--mute);padding-right:10px}#pftr td,#pfstuck td,#pfev td{font-size:13.5px}.pd{margin-top:4px}.pd summary{cursor:pointer;font-size:12.5px;color:var(--accent)}.pd .meta{margin-left:6px}
 .tag.tap{background:#db2777;color:#fff;font-weight:700;box-shadow:0 0 0 2px #fbcfe8}.tag.trial{background:var(--accent);color:#fff}.tag.install{background:#f59e0b;color:#1f1300}.tag.paid{background:var(--good);color:#04130a}.tag.cx{background:var(--bad);color:#fff}
 .tag.weekly,.tag.monthly,.tag.yearly{background:var(--good);color:#04130a}.tag.pass{background:#a855f7;color:#fff}.tag.expired{background:#6b7280;color:#fff}
 .plan{font-size:13px;margin-top:3px;font-weight:550}.plan.pass{color:#a855f7}.plan.sub{color:var(--good)}.plan.trial{color:var(--accent)}.plan.off{color:var(--mute)}
@@ -119,7 +120,7 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);margin:16px 0 6px}
 #arvbox h3{font-size:14px;font-weight:600;margin:14px 0 6px}
 .gbody{display:block}
-@media (min-width:900px){.cols{display:block}.gbody{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start}.gbody>.card:last-child:nth-child(odd){grid-column:1/-1}}
+@media (min-width:900px){.cols{display:block}.gbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:start}.gbody>.card:last-child:nth-child(odd){grid-column:1/-1}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
@@ -211,6 +212,18 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <p id="cxmed" style="margin:10px 0 0;font-size:14px"></p>
 <p class="note" id="cxnote" style="margin-top:8px;font-size:12px"></p>
 </section>
+
+<section class="card" id="payfail">
+<h2>Refunds and failed charges</h2>
+<p class="cap">What Apple and RevenueCat say about money that came back or never arrived.</p>
+<div class="grid" id="pfgrid"></div>
+<h3 class="subh">What happened to free trials (Apple's own report)</h3>
+<table id="pftr"><tbody></tbody></table>
+<h3 class="subh">Billing problems open now (RevenueCat)</h3>
+<div style="overflow-x:auto"><table id="pfstuck"><tbody></tbody></table></div>
+<details style="margin-top:10px"><summary class="subh" style="cursor:pointer">Apple's events, newest first</summary><div style="overflow-x:auto"><table id="pfev"><tbody></tbody></table></div></details>
+<p class="note" id="pfnote" style="margin-top:8px;font-size:12px"></p>
+</section>
 </div>
 </div>
 
@@ -229,7 +242,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
 </tbody></table>
 <p class="note" style="margin-top:8px;font-size:12px">Counted from RevenueCat, App Store installs only. Organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count above.</p>
-<p class="note" style="margin-top:8px;font-size:12px">"Tapped buy, didn't finish" = tapped buy on a RevenueCat paywall but has no trial and no purchase. Tracked on RevenueCat paywalls since 1.8.5; the reason (cancelled, failed, waiting for a parent) isn't recorded yet. Price shown is inferred from the screen they reached; from the next app version the exact plan and price tapped will be recorded.</p>
+<p class="note" style="margin-top:8px;font-size:12px">"Tapped buy, didn't finish" = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6) but has no trial and no purchase. One definition, used by every section. On one-tap cards the result is recorded (cancelled / pending / failed); on RevenueCat paywalls the app does not yet record what happened after the tap (needs an app build), so those rows show the order of what the phone sent. Price shown is inferred from the screen they reached.</p>
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
@@ -244,6 +257,13 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <p class="cap">How far people get: setup, offer screens, paywall, trial.</p>
 <div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
 <p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="insightcard" data-title="What people did">
+<h2 id="inslabel">What people did</h2>
+<p class="cap">Data the app already sends, summed for new installs in the period.</p>
+<div id="insbody"></div>
+<p class="note" id="insnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card" id="leftcard" data-title="Where people without a trial left">
@@ -261,8 +281,8 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 
 <section class="card" id="vercard">
 <h2 id="verlabel">By version</h2>
-<p class="cap">Installs split by the app version people installed on.</p>
-<table id="vers"><thead><tr><th>Installed on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<p class="cap">Installs split by the app version people set up on.</p>
+<table id="vers"><thead><tr><th>Set up on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
 <p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
 <details id="exclnote" style="margin-top:8px;font-size:12px;display:none"><summary id="exclsum" style="cursor:pointer;color:var(--mute)"></summary><div id="excllist" class="note" style="margin-top:6px"></div></details>
 </section>
@@ -452,7 +472,7 @@ function summary() {
   $('tlabel').textContent = 'Per search term (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
   $('kw').tBodies[0].innerHTML = kws.map((k) => `<tr class="${k.status === 'PAUSED' ? 'paused' : ''}"><td>${k.term}<div class="sub">${money(k.spend)} spent · bid ${money(k.bid)}${k.status === 'PAUSED' ? ' · paused' : ''}</div></td><td class="n">${k.taps}</td><td class="n">${k.taps ? money(k.spend / k.taps) : '–'}</td><td class="n">${k.installs}</td><td class="n">${k.installs ? money(k.spend / k.installs) : '–'}</td></tr>`).join('') || '<tr><td colspan="5">No data yet</td></tr>';
 }
-document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); people(); moneyCard(); funnelCard(); termsDollars(); convertedCard(); });
+document.querySelectorAll('#ads .seg button').forEach((b) => b.onclick = () => { range = b.dataset.r; try { localStorage.setItem('range', range); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); people(); moneyCard(); funnelCard(); termsDollars(); convertedCard(); try { insightsCard(); } catch (e) {} });
 function agesTable() {
   const rows = ((last.rc_ages || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -473,7 +493,7 @@ function versionsTable() {
     const ex = last.rc_excluded || [];
     $('exclnote').style.display = ex.length ? '' : 'none';
     $('exclsum').textContent = 'Excluded: Apple review devices (' + ex.length + ')';
-    $('excllist').innerHTML = ex.map((x) => esc(x.user) + ' · v' + esc(x.version) + ' · ' + esc(x.state) + ' · first seen ' + esc(x.first) + ' · ' + esc(x.why)).join('<br>') + '<br>Left out of every count and table on this page.';
+    $('excllist').innerHTML = ex.map((x) => esc(x.user) + ' · v' + esc(x.version) + ' · ' + esc(x.state) + ' · first seen ' + esc(x.first) + ' · ' + esc(x.why)).join('<br>') + '<br>Left out of every count and table on this page. RevenueCat\'s own dashboard still counts these devices.';
   } catch (e) {}
   const rows = ((last.rc_versions || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -482,7 +502,7 @@ function versionsTable() {
   const sum = (k) => rows.reduce((t, r) => t + (r[k] || 0), 0);
   $('vers').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${r.version === 'none' ? 'Not recorded' : 'v' + esc(r.version)}</td><td class="n">${r.installs}</td><td class="n">${r.ads}</td><td class="n">${r.organic}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td><td class="n">${r.tapped_buy}</td></tr>`).join('');
   $('vers').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sum('installs')}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}</td><td class="n">${sum('tapped_buy')}</td></tr>`;
-  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person (the version they installed on). People first seen before we started recording this have their oldest known version, which can be later than the one they installed (marked with ≈ on their row). Counted like the Ages table: Installs, Ads and Organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = tapped buy on a RevenueCat paywall (tracked since 1.8.5), no trial, no purchase.';
+  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person. The app only reports its version during setup, so this is the version they SET UP on, not necessarily the one they use now (a row shows RevenueCat\'s own "last seen" version beside it). People first seen before we started recording this have their oldest known version, which can be later than the one they set up on (marked with ≈ on their row). The 6 people with no setup version show only RevenueCat\'s version. Counted like the Ages table: Installs, Ads and Organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6), no trial, no purchase. Apple review test devices stay left out, but RevenueCat\'s own dashboard still counts them.';
 }
 function adsByAge() {
   const d = ((last.rc_ads_by_age || {})[range]) || null;
@@ -553,7 +573,7 @@ function funnelCard() {
   const steps = [
     { k: 'installs', l: 'Installed', prev: null, ok: () => true },
     { k: 'setup', l: 'Finished setup', prev: 'installs', ok: () => true },
-    { k: 'test_started', l: 'Started knowledge test', prev: 'setup', ok: (x) => x.tracks_test, sub: true },
+    { k: 'test_started', l: 'Started knowledge test', prev: 'installs', ok: (x) => x.tracks_test, sub: true },
     { k: 'test_finished', l: 'Finished it', prev: 'test_started', ok: (x) => x.tracks_test, sub: true },
     { k: 'saw_price', l: 'Saw a price', prev: 'setup', ok: () => true },
     { k: 'tapped', l: 'Tapped buy', prev: 'saw_price', ok: (x) => x.tracks_tap },
@@ -571,12 +591,12 @@ function funnelCard() {
     const cells = g.map((x) => {
       if (!st.ok(x)) return '<td class="n na">n/a (older app)</td>';
       const num = x[st.k], d = st.k === 'installs' ? 0 : x[prevFor(st, x)];
-      const extra = st.k === 'test_started' && x.test_skipped ? `<span class="pc">${x.test_skipped} skipped it</span>` : '';
+      const extra = (st.k === 'test_started' && x.test_skipped ? `<span class="pc">${x.test_skipped} skipped it</span>` : '') + (st.k === 'saw_price' && x.saw_test_card_only ? `<span class="pc">+${x.saw_test_card_only} saw only the test result card</span>` : '');
       return `<td class="n c">${num}${d ? `<span class="pc">${pc(num, d)} kept</span>` : ''}${extra}</td>`;
     }).join('');
-    return `<tr class="${st.sub ? 'sub' : ''}"><td>${esc(st.l)}${st.sub ? '<div class="sub">1.8.6 and newer only</div>' : ''}</td><td class="n c">${tot}</td>${cells}</tr>`;
+    return `<tr class="${st.sub ? 'sub' : ''}"><td>${esc(st.l)}${st.sub ? '<div class="sub">1.8.6 and newer only, happens inside setup; share of installs</div>' : ''}</td><td class="n c">${tot}</td>${cells}</tr>`;
   }).join('');
-  $('funnote').textContent = 'New installs in the period, split by the app version they installed on (App Store installs only, same people as the Summary). Every step means "got at least this far", so people are never lost between rows; "kept" is the share of the step before. The knowledge test is optional and only exists in 1.8.6 and newer, so "Saw a price" is compared with "Finished setup", not with the test. "Tapped buy" is recorded from 1.8.5; older versions show n/a. † = the Total counts only the app versions that record that step. Finished setup = got past the plan screen (or shows any later sign). Saw a price = any paywall or one-tap buy card shown. Got a trial or bought = free trial started or a paid purchase.';
+  $('funnote').textContent = 'New installs in the period, split by the app version they installed on (App Store installs only, same people as the Summary). Every step means "got at least this far", so people are never lost between rows; "kept" is the share of the step before. FINISHED SETUP (rule since 10-17): from 1.8.6 the knowledge test is the last setup screen, so reaching it is not finishing. A person counts as finished when the offer pages were passed (offer_pages = completed / closed / skipped, or they reached an offer page) or they show later activity: a paywall outcome, a one-tap card on a locked door or the Home card, a buy tap, a trial or a purchase. Someone who only saw the knowledge test\'s own result card is not counted as finished; they are shown as "saw only the test result card" under Saw a price. The knowledge test rows are shares of installs (the test sits inside setup and is optional, 1.8.6 and newer only). TAPPED BUY is one definition used everywhere on this page (tag per person, Summary, By version, here): a buy button was pressed on a RevenueCat paywall (tracked from 1.8.5) or on a one-tap card (tapped, cancelled, pending, failed or bought, 1.8.6+); older versions show n/a. † = the Total counts only the app versions that record the step.';
 }
 
 function convertedCard() {
@@ -592,6 +612,44 @@ function convertedCard() {
     T.tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sum('trials')}</td><td class="n">${sum('weekly')}${other ? `<div class="sub" style="font-weight:400">+${other} other</div>` : ''}</td><td class="n">${sum('pass')}</td><td class="n">${money(rows.reduce((t, r) => t + r.revenue, 0))}</td></tr>`;
   }
   $('convnote').textContent = 'Views per screen are not recorded yet, so this shows wins, not rates. Follows the Today / This week switch; trials and purchases are counted in the period like the Summary. The screen comes from what the app records: the one-tap buy cards (1.8.6: knowledge check, end of trial lesson, flashcards, home upgrade, locked features) from quickbuy_choice_place; the first paywall, the locked-feature paywall and the two close offers from the "purchased" marker each one sets; "A RevenueCat paywall" means only the package tapped is known. If more than one screen says purchased, the one written nearest the trial or purchase time is used. Weekly = the weekly plan (including the $4.99 intro); Pass = the one-time pass. Revenue = what those buyers have paid in total. "Not recorded" = the app version that person used did not send a screen.';
+}
+
+
+function paymentsCard() {
+  const p = last.payments;
+  if (!p) { $('pfgrid').innerHTML = '<p class="note">No data yet</p>'; return; }
+  const t = p.totals || {}, c = (k, l, sub, cl) => `<div><div class="k ${cl || ''}">${k}</div><div class="l">${l}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`;
+  const stuck = p.stuck || [];
+  const failed = t.billing_fail_trial + t.billing_fail;
+  $('pfgrid').innerHTML = c(p.refunds.count, 'Refunds', p.refunds.count ? '' : '$0 refunded so far') + c(failed, 'Failed charges', t.recovered + ' recovered', failed ? 'down' : '') +
+    c(stuck.length, 'Open billing problems', 'RevenueCat, now') + c(t.cancel, 'Cancelled trials', 'Apple') + c(t.trial_start, 'Trials started', 'Apple, since ' + esc((p.apple_first || '').slice(5))) + c(p.family_shared, 'Family-shared copies', 'not separate buyers');
+  const att = t.cancel + t.billing_fail_trial + t.trial_paid;
+  $('pftr').tBodies[0].innerHTML = [['Trials started', t.trial_start], ['Cancelled before the first charge', t.cancel], ['Trial ended and the first charge FAILED', t.billing_fail_trial], ['Turned into a paid plan', t.trial_paid + ' (the person tapped Unlock now; no automatic charge has worked yet)'],
+    ['Still running or too new', Math.max(0, t.trial_start - att)]].map(([a, b]) => `<tr><td>${esc(a)}</td><td class="n">${esc(b)}</td></tr>`).join('');
+  $('pfstuck').tBodies[0].innerHTML = stuck.map((x) => `<tr><td>#${esc(x.user)}${x.counted_in_users ? '' : '<div class="sub">older app, not in Users</div>'}</td><td>${esc(x.product)}${x.price ? ' · $' + esc(x.price) : ''}<div class="sub">${esc(x.status)}</div></td><td class="n">since ${esc(x.since)}</td></tr>`).join('') || '<tr><td>None</td></tr>';
+  $('pfev').tBodies[0].innerHTML = (p.events || []).map((e) => `<tr><td>${esc(e.date.slice(5))}</td><td>${esc(e.word)}<div class="sub">${esc(e.plan)}${e.state ? ' · ' + esc(e.state) : ''}${e.days_before != null ? ' · ' + e.days_before + ' day(s) after start' : ''}${e.reason ? ' · ' + esc(e.reason) : ''}</div></td><td class="n">${e.qty}</td></tr>`).join('') || '<tr><td>None</td></tr>';
+  $('pfnote').textContent = 'Apple events: App Store Connect subscription report, ' + p.apple_days + ' days archived (' + (p.apple_first || '') + ' to ' + (p.apple_last || '') + ', Apple publishes about a day late); it has no customer id, so a person gets an "Apple says" line only when state and start day match exactly one person. Refunds = Apple refund events + negative units in Apple sales + RevenueCat purchases marked refunded. RevenueCat shows a failed charge as billing retry; billing grace period was off on 10-12 (not re-read). Not available from RevenueCat\'s API: when a cancel happened (see Trial cancellations for our own timing), the cancel survey answers from the Customer Center, a refund of a subscription, and why a charge failed. Apple review test devices are excluded from Users, but RevenueCat\'s own dashboard still counts them.';
+}
+function insightsCard() {
+  const i = ((last.rc_insights || {})[range]);
+  const B = $('insbody');
+  $('inslabel').textContent = 'What people did (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
+  if (!i || !i.n) { B.innerHTML = '<p class="note">No new installs in this period yet</p>'; $('insnote').textContent = ''; return; }
+  const kv = (o) => Object.entries(o || {}).map(([k, v]) => esc(k) + ' ' + v).join(' · ') || 'none yet';
+  const row = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
+  const ot = (i.one_tap || []).map((x) => `${esc(x.place)}: ` + x.outcomes.map((o) => esc(o.outcome) + ' ' + o.n).join(', ')).join('<br>') || 'none yet';
+  const secs = Object.entries(i.seconds || {}).map(([k, v]) => v.length ? `<b>${esc(k)}</b> (median): ` + v.map((x) => esc(x.screen) + ' ' + x.median + 's').join(' · ') : '').filter(Boolean).join('<br>') || 'none yet';
+  const T = i.test || {};
+  B.innerHTML = '<table><tbody>' +
+    row('New installs', i.n) +
+    row('Welcome popup', kv(i.welcome_popup)) +
+    row('Knowledge test', kv(T.status) + (T.avg_score_pct != null ? `<br>average score ${T.avg_score_pct}% (${T.scored} finished)` : '') + ((T.weakest || []).length ? '<br>weakest topics: ' + T.weakest.map((w) => esc(w[0]) + ' ' + w[1]).join(', ') : '')) +
+    row('One-tap cards', ot) + row('Seconds on screens', secs) + row('App language', kv(i.language)) +
+    row('Reminders', `yes ${i.reminders.yes} · no ${i.reminders.no} · notifications allowed ${i.reminders.push}`) +
+    row('Who pays', `parent ${i.payer.parent} · self ${i.payer.self} · tapped Send to my parent ${i.payer.parent_share}`) +
+    row('Rating and review', `rating prompt asked ${i.rating.asked} · Write a review tapped ${i.rating.write_review}`) +
+    row('Customer Center opened', i.customer_center) + row('Support codes', i.support_codes) + row('RevenueCat app version now', kv(i.versions_seen)) + '</tbody></table>';
+  $('insnote').textContent = 'New installs in the period (same people as the Summary). Per person detail is under each name in Each person. Knowledge test, welcome popup, one-tap cards, rating and parent share only exist from 1.8.6, so older installs add nothing there.';
 }
 
 function fmtDur(min) {
@@ -730,10 +788,12 @@ document.querySelectorAll('#ufilter button').forEach((b) => b.onclick = () => { 
 function tagsFor(p) {
   const t = (c, x) => `<span class="tag ${c}">${esc(x)}</span>`;
   const tap = p.tapped_buy ? t('tap', '⚠ tapped buy, backed out') + (p.tapped_saw ? ` <span class="tapsaw">${esc(p.tapped_saw)}</span>` : '') : '';
-  if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '') + tap;
-  if (p.plan_kind === 'pass') return t('pass', 'pass');
-  if (p.plan_state === 'expired') return t('expired', 'expired') + tap;
-  return (p.trialing ? t('trial', 'trial') : t(p.plan_kind, p.plan_kind)) + (p.plan_state === 'cancelled' ? t('cx', 'cancelled') : '');
+  const pay = (p.pay || []).some((x) => x[0] === 'Billing issue') ? t('cx', 'billing issue') : '';
+  const ref = (p.pay || []).some((x) => x[0] === 'Refunded') ? t('cx', 'refunded') : '';
+  if (!p.plan_state) return (p.status === 'no trial' ? t('install', 'install') : t(p.status, p.status)) + (p.cancelled ? t('cx', 'cancelled') : '') + tap + pay + ref;
+  if (p.plan_kind === 'pass') return t('pass', 'pass') + ref;
+  if (p.plan_state === 'expired') return t('expired', 'expired') + tap + pay + ref;
+  return (p.trialing ? t('trial', 'trial') : t(p.plan_kind, p.plan_kind)) + (p.plan_state === 'cancelled' ? t('cx', 'cancelled') : '') + pay + ref;
 }
 function planLine(p) {
   if (!p.plan_state) return '';
@@ -751,14 +811,29 @@ function planLine(p) {
 }
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function versionLine(p) {
+  // The app sends app_version only during setup, so it is the version they SET UP on. RevenueCat's own last-seen version (free in its
+  // customer list) is the version they use now, and fills the gap for people with no setup version.
   const v = (x, ap) => 'v' + esc(x) + (ap ? ' ≈' : '');
   const bits = [];
-  if (p.app_version) bits.push('App ' + v(p.app_version) + ' now');
-  if (p.first_app_version) bits.push('Installed on ' + v(p.first_app_version, p.first_app_version_approx));
+  if (p.rc_version) bits.push('App now ' + v(p.rc_version) + ' (RevenueCat)');
+  if (p.first_app_version) bits.push('Set up on ' + v(p.first_app_version, p.first_app_version_approx) + (p.rc_version && p.rc_version !== p.first_app_version ? ', updated since' : ''));
+  else bits.push('setup version not recorded');
   if (p.purchase_app_version) bits.push('Bought on ' + v(p.purchase_app_version, p.purchase_app_version_approx));
   else if (p.trial_app_version) bits.push('Trial started on ' + v(p.trial_app_version, p.trial_app_version_approx));
   if (p.tapped_buy) bits.push('Tapped buy' + (p.tapped_at ? ' ' + esc(p.tapped_at) : '') + ', did not finish');
   return bits.length ? `<div class="meta">${bits.join(' · ')}</div>` : '';
+}
+function tapLines(p) {
+  if (!p.tapped_buy) return '';
+  return `<div class="meta cxl">Tapped buy: ${esc((p.tap_events || []).join('; '))}</div>` + (p.tap_story ? `<div class="meta">What the phone sent, in order: ${esc(p.tap_story)}. Order is send time, not tap time; what happened at Apple's sheet is not recorded on RevenueCat paywalls.${p.age && /under/.test(p.age) ? ' Under 18: Ask to Buy is possible.' : ''}</div>` : '');
+}
+function payLines(p) {
+  return (p.pay || []).map((x) => `<div class="meta cxl"><b>${esc(x[0])}:</b> ${esc(x[1])}</div>`).join('');
+}
+function detailBox(p) {
+  const d = p.details || [];
+  if (!d.length) return '';
+  return `<details class="pd"><summary>Details (${d.length}) · RevenueCat …${esc(p.id_end)}</summary>${d.map((x) => `<div class="meta"><b>${esc(x[0])}:</b> ${esc(x[1])}</div>`).join('')}</details>`;
 }
 function convLine(p) {
   return p.conv_screen ? `<div class="meta">Converted on: <b>${esc(p.conv_screen)}</b>${p.conv_detail ? ' · ' + esc(p.conv_detail) : ''}</div>` : '';
@@ -785,11 +860,14 @@ function people() {
 <div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
 ${versionLine(p)}
 ${convLine(p)}
+${tapLines(p)}
+${payLines(p)}
 ${(p.payer || p.heard_from || p.drivers_ed) ? `<div class="meta">${p.payer ? 'paid by ' + esc(p.payer === 'parent' ? 'a parent' : 'self') : ''}${p.heard_from ? (p.payer ? ' · ' : '') + 'heard from ' + esc(String(p.heard_from).replace('_', ' ')) : ''}${p.drivers_ed ? ' · drivers ed: ' + esc(p.drivers_ed) : ''}</div>` : ''}
 ${(p.mocks_passed || p.real_test) ? `<div class="meta">${p.mocks_passed ? esc(p.mocks_passed) + ' mock exams passed' : ''}${p.real_test ? (p.mocks_passed ? ' · ' : '') + 'real test: ' + esc(p.real_test) + (p.real_test_score ? ' (score ' + esc(p.real_test_score) + ')' : '') : ''}</div>` : ''}
 ${p.plan_state ? planLine(p) : (p.trial_start ? `<div class="meta">Trial ${esc(p.product)} started ${esc(p.trial_start)}${p.bills ? ' · bills ' + esc(p.bills) : ''}${p.bill_rate ? ' at <b>' + esc(p.bill_rate) + '</b>' + (p.cancelled ? ' (will not bill: cancelled)' : '') : ''}${p.paid_usd ? ' · paid $' + esc(p.paid_usd) : ''}</div>` : '')}
 ${cancelLines(p)}
-${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}</div>`).join('') || '<p class="note">Nobody yet.</p>';
+${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}
+${detailBox(p)}</div>`).join('') || '<p class="note">Nobody yet.</p>';
   $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are Italy time; days are Apple Ads days (Alaska). Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
 function rankHistory(h) {
@@ -846,6 +924,7 @@ async function load() {
     DZ = d.display_tz || DZ;
     $('upd').textContent = 'Updated ' + ago(d.updated) + ' (' + clock(Date.parse(d.updated)) + ')';
     last = d; try { appleReviewCard(); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
+    try { paymentsCard(); insightsCard(); } catch (e) { console.error(e); }
     try { moneyCard(); trendsCard(); } catch (e) {}
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
