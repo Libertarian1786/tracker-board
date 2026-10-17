@@ -109,6 +109,17 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 #arvbox td,#arvbox th{font-size:13.5px;padding:6px 4px}
 #arvbox .sub{font-size:11.5px;color:var(--mute);font-weight:400}
 .chip.arv-now{background:#f59e0b;color:#1f1300}.chip.arv-wait{background:var(--accent);color:#fff}.chip.arv-ok{background:var(--good);color:#04130a}.chip.arv-bad{background:var(--bad);color:#fff}.chip.arv-off{background:#6b7280;color:#fff}
+
+/* flow groups (10-17) */
+.cols{display:block}
+.grp{margin:0 0 18px;scroll-margin-top:64px}
+.gh{font-size:20px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--ink);margin:18px 0 2px;padding:0 0 0 10px;border-left:4px solid var(--accent)}
+.gcap{margin:0 0 10px 14px;font-size:13px;color:var(--mute)}
+.cap{margin:-4px 0 10px;font-size:13px;color:var(--mute)}
+h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);margin:16px 0 6px}
+#arvbox h3{font-size:14px;font-weight:600;margin:14px 0 6px}
+.gbody{display:block}
+@media (min-width:900px){.cols{display:block}.gbody{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start}.gbody>.card:last-child:nth-child(odd){grid-column:1/-1}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
@@ -118,12 +129,16 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
 <p class="upd" style="margin:-4px 0 8px"><b>Times are Italy time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
 <p class="upd" style="margin:-4px 0 8px"><a href="#" id="showall">Show all</a><span id="hidcount"></span> <span>· each section has a Hide button at its top right; hidden sections stay hidden after a refresh</span></p>
-<nav><a href="#arvbox">Apple review</a><a href="#ads" class="on">Summary</a><a href="#money">Money</a><a href="#funnel">Funnel</a><a href="#terms">Terms</a><a href="#bills">Bills</a><a href="#trends">Trends</a><a href="#reviews">Reviews</a><a href="#rank">Rank</a><a href="#users">Users</a></nav>
-<div class="cols"><div>
-
+<nav aria-label="Jump to a group"><a href="#g-summary" class="on">Summary</a><a href="#g-money">Money</a><a href="#g-customers">Customers</a><a href="#g-ads">Ads</a><a href="#g-store">Store</a><a href="#g-trends">Trends</a><a href="#g-people">People</a></nav>
+<div class="cols">
+<div class="grp" id="g-summary">
+<h2 class="gh">Summary</h2>
+<p class="gcap">Today at a glance and where Apple review stands.</p>
+<div class="gbody">
 <section class="card" id="ads" data-title="Summary">
 <div class="seg" role="tablist"><button data-r="day" class="on">Today</button><button data-r="week">This week</button></div>
 <h2 id="rlabel">Today</h2>
+<p class="cap">Impressions, taps, installs, trials, purchases and ad cost for the period picked above.</p>
 <div class="grid">
 <div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
 <div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
@@ -135,10 +150,77 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
 <div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
 </div>
-<h2 style="margin-top:14px">By campaign</h2>
-<div style="overflow-x:auto"><table id="camps"><thead><tr><th>Campaign</th><th class="n">Spent</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Per inst.</th></tr></thead><tbody><tr><td colspan="6">No data yet</td></tr></tbody><tfoot></tfoot></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Every campaign in the Apple Ads account is counted in the numbers above; this splits them by campaign and placement. Follows the Today / This week switch. Paused campaigns with no activity in the period are hidden.</p>
-<h2 style="margin-top:14px">Ads vs organic</h2>
+</section>
+
+<section class="card" id="arvbox" data-title="Apple review">
+<h2>Apple review</h2>
+<p class="cap">Where our app versions are in Apple's review, and what the reviewers did in the app.</p>
+<p class="st" id="arvstatus">Loading…</p>
+<div style="overflow-x:auto"><table id="arvv"><thead><tr><th>Version</th><th>App Store state</th><th>Since</th></tr></thead><tbody></tbody></table></div>
+<h3>Review submissions</h3>
+<div style="overflow-x:auto"><table id="arvs"><thead><tr><th>Submitted</th><th>State</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<h3>State changes seen</h3>
+<div id="arvc" class="note" style="font-size:13px"></div>
+<h3>Reviewer activity</h3>
+<div style="overflow-x:auto"><table id="arva"><thead><tr><th>Last opened</th><th>Version</th><th>What they did</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="arvnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+</div>
+</div>
+
+<div class="grp" id="g-money">
+<h2 class="gh">Money</h2>
+<p class="gcap">What comes in, what goes out, and what is coming due.</p>
+<div class="gbody">
+<section class="card" id="money">
+<h2 id="moneylabel">Money in vs money out</h2>
+<p class="cap">What the ads cost against what we keep after Apple's cut.</p>
+<div class="l" id="mwin1" style="margin-bottom:6px">Since the ads started</div>
+<div class="grid" id="mgrid_all"></div>
+<div class="l" id="mwin2" style="margin:14px 0 6px">Today</div>
+<div class="grid" id="mgrid_win"></div>
+<div class="ctitle">Running profit / loss since the ads started</div>
+<div class="cbox" style="height:150px"><canvas id="cumchart" role="img" aria-label="Running profit or loss since the ads started"></canvas></div>
+<div style="overflow-x:auto"><table id="mdays"><thead><tr><th>Day</th><th class="n">Cost</th><th class="n">Revenue</th><th class="n">Keep</th><th class="n">Net</th><th class="n">Running</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="mnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="apple">
+<h2>Apple sales report</h2>
+<p class="cap">Apple's own sales record, one day per row.</p>
+<div style="overflow-x:auto"><table id="asales"><thead><tr><th>Day</th><th class="n">New downloads</th><th>Paid units (price, you keep)</th></tr></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Apple's own real-money record, one day per row. Days are Apple's (Pacific time). Apple's file for a day appears the next day, so today is not here yet. A red flag means Apple's paid units differ from what RevenueCat shows for that day.</p>
+</section>
+
+<section class="card" id="bills">
+<h2>Upcoming bills (next 7 days)</h2>
+<p class="cap">Trial and subscription charges about to come due, and what happened to the ones that already did.</p>
+<p id="bsum" style="margin:0 0 8px;font-size:15px"></p>
+<div style="overflow-x:auto"><table id="bup"><tbody></tbody></table></div>
+<h3 class="subh">What happened to charges that came due (14 days)</h3>
+<p id="btally" class="note" style="margin:0 0 6px"></p>
+<div style="overflow-x:auto"><table id="bhist"><tbody></tbody></table></div>
+<p class="note" id="bnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
+<section class="card" id="cancels">
+<h2>Trial cancellations</h2>
+<p class="cap">How many trial users turned off auto-renew, and how soon.</p>
+<p id="cxsum" style="margin:0 0 8px;font-size:15px"></p>
+<table id="cxb"><thead><tr><th>Turned auto-renew off</th><th class="n">Trials</th></tr></thead><tbody></tbody></table>
+<p id="cxmed" style="margin:10px 0 0;font-size:14px"></p>
+<p class="note" id="cxnote" style="margin-top:8px;font-size:12px"></p>
+</section>
+</div>
+</div>
+
+<div class="grp" id="g-customers">
+<h2 class="gh">Customers and funnel</h2>
+<p class="gcap">Who showed up, how far they got, and what they did.</p>
+<div class="gbody">
+<section class="card" id="splitcard" data-title="Ads vs organic">
+<h2>Ads vs organic</h2>
+<p class="cap">Where people came from: paid ads, or finding the app on their own.</p>
 <table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Organic</th><th class="n">Total</th></tr></thead><tbody>
 <tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
 <tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
@@ -151,78 +233,66 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
-<section class="card" id="arvbox" data-title="Apple review">
-<h2>Apple review</h2>
-<p class="st" id="arvstatus">Loading…</p>
-<div style="overflow-x:auto"><table id="arvv"><thead><tr><th>Version</th><th>App Store state</th><th>Since</th></tr></thead><tbody></tbody></table></div>
-<h3>Review submissions</h3>
-<div style="overflow-x:auto"><table id="arvs"><thead><tr><th>Submitted</th><th>State</th><th>Result</th></tr></thead><tbody></tbody></table></div>
-<h3>State changes seen</h3>
-<div id="arvc" class="note" style="font-size:13px"></div>
-<h3>Reviewer activity</h3>
-<div style="overflow-x:auto"><table id="arva"><thead><tr><th>Last opened</th><th>Version</th><th>What they did</th></tr></thead><tbody></tbody></table></div>
-<p class="note" id="arvnote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="users">
+<h2 id="ulabel">Users</h2>
+<p class="cap">Everyone who opened the app in the period, by type.</p>
+<div class="grid" id="ugrid"></div>
 </section>
 
-<section class="card" id="money">
-<h2 id="moneylabel">Money in vs money out</h2>
-<div class="l" id="mwin1" style="margin-bottom:6px">Since the ads started</div>
-<div class="grid" id="mgrid_all"></div>
-<div class="l" id="mwin2" style="margin:14px 0 6px">Today</div>
-<div class="grid" id="mgrid_win"></div>
-<div class="ctitle">Running profit / loss since the ads started</div>
-<div class="cbox" style="height:150px"><canvas id="cumchart" role="img" aria-label="Running profit or loss since the ads started"></canvas></div>
-<div style="overflow-x:auto"><table id="mdays"><thead><tr><th>Day</th><th class="n">Cost</th><th class="n">Revenue</th><th class="n">Keep</th><th class="n">Net</th><th class="n">Running</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="mnote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="funnel">
+<h2 id="funlabel">Funnel</h2>
+<p class="cap">How far people get: setup, offer screens, paywall, trial.</p>
+<div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
+<p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
-<section class="card" id="agecard">
-<h2 id="agelabel">Ages</h2>
-<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
-<p class="note" id="agenote" style="margin-top:8px;font-size:12px"></p>
-<h3 id="abalabel" style="margin:18px 0 8px;font-size:15px">Ads by age</h3>
-<div style="overflow-x:auto"><table id="aba"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="abanote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="leftcard" data-title="Where people without a trial left">
+<h2>Where people without a trial left</h2>
+<p class="cap">The last screen seen by people who never started a trial.</p>
+<table id="left"><tbody></tbody></table>
+</section>
+
+<section class="card" id="converted">
+<h2 id="convlabel">Converted on</h2>
+<p class="cap">Which purchase screen each trial or sale came from.</p>
+<div style="overflow-x:auto"><table id="conv"><thead><tr><th>Purchase screen</th><th class="n">Trials</th><th class="n">Weekly</th><th class="n">Pass</th><th class="n">Revenue</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="convnote" style="margin-top:8px;font-size:12px"></p>
 </section>
 
 <section class="card" id="vercard">
 <h2 id="verlabel">By version</h2>
+<p class="cap">Installs split by the app version people installed on.</p>
 <table id="vers"><thead><tr><th>Installed on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
 <p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
 <details id="exclnote" style="margin-top:8px;font-size:12px;display:none"><summary id="exclsum" style="cursor:pointer;color:var(--mute)"></summary><div id="excllist" class="note" style="margin-top:6px"></div></details>
 </section>
 
-<section class="card" id="funnel">
-<h2 id="funlabel">Funnel</h2>
-<div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
-<p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="agecard">
+<h2 id="agelabel">Ages</h2>
+<p class="cap">Installs, trials and paid, by the age people chose.</p>
+<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<p class="note" id="agenote" style="margin-top:8px;font-size:12px"></p>
+<h3 id="abalabel" class="subh">Ads by age</h3>
+<div style="overflow-x:auto"><table id="aba"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="abanote" style="margin-top:8px;font-size:12px"></p>
 </section>
-
-<section class="card" id="converted">
-<h2 id="convlabel">Converted on</h2>
-<div style="overflow-x:auto"><table id="conv"><thead><tr><th>Purchase screen</th><th class="n">Trials</th><th class="n">Weekly</th><th class="n">Pass</th><th class="n">Revenue</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="convnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-
-<section class="card" id="terms">
-<h2 id="tlabel">Per search term</h2>
-<div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Inst.</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey rows are paused terms.</p>
-</section>
-
-<section class="card" id="termsd">
-<h2 id="tsdlabel">Search terms to dollars</h2>
-<div style="overflow-x:auto"><table id="tsd"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="tsdnote" style="margin-top:8px;font-size:12px"></p>
-<div id="discbox" style="margin-top:14px" hidden>
-<h3 style="margin:0 0 6px;font-size:14px">Searches Apple matched</h3>
-<div style="overflow-x:auto"><table id="disct"><thead><tr><th>Search</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Inst.</th><th class="n">Spent</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
-<p class="note" id="discnote" style="margin-top:8px;font-size:12px"></p>
 </div>
+</div>
+
+<div class="grp" id="g-ads">
+<h2 class="gh">Ads</h2>
+<p class="gcap">Apple Ads spend and results.</p>
+<div class="gbody">
+<section class="card" id="campcard" data-title="By campaign">
+<h2>By campaign</h2>
+<p class="cap">Each Apple Ads campaign and placement, for the period picked in Summary.</p>
+<div style="overflow-x:auto"><table id="camps"><thead><tr><th>Campaign</th><th class="n">Spent</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Per inst.</th></tr></thead><tbody><tr><td colspan="6">No data yet</td></tr></tbody><tfoot></tfoot></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Every campaign in the Apple Ads account is counted in the numbers above; this splits them by campaign and placement. Follows the Today / This week switch. Paused campaigns with no activity in the period are hidden.</p>
 </section>
 
 <section class="card">
 <h2>Today, through the day</h2>
+<p class="cap">Taps and installs by hour today, in Italy time.</p>
 <svg id="chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Taps and installs through today"></svg>
 <div class="upd" id="chartaxis" style="display:flex;justify-content:space-between;font-size:11px"></div>
 <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Taps</span><span><span class="dot" style="background:var(--good)"></span>Installs</span></div>
@@ -230,36 +300,64 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 
 <section class="card">
 <h2>Last 7 days of ads</h2>
+<p class="cap">Apple Ads results per day (Alaska days, matching Apple Ads).</p>
 <table id="days"><thead><tr><th>Day</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Spent</th></tr></thead><tbody></tbody></table>
 </section>
 
-<section class="card" id="apple">
-<h2>Apple sales report</h2>
-<div style="overflow-x:auto"><table id="asales"><thead><tr><th>Day</th><th class="n">New downloads</th><th>Paid units (price, you keep)</th></tr></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Apple's own real-money record, one day per row. Days are Apple's (Pacific time). Apple's file for a day appears the next day, so today is not here yet. A red flag means Apple's paid units differ from what RevenueCat shows for that day.</p>
+<section class="card" id="terms" data-title="Search terms">
+<h2 id="tsdlabel">Search terms to dollars</h2>
+<p class="cap">Each search term: what ads spent on it and what people did afterwards (Apple Ads numbers plus RevenueCat people).</p>
+<div style="overflow-x:auto"><table id="tsd"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<p class="note" id="tsdnote" style="margin-top:8px;font-size:12px"></p>
+<div id="discbox" style="margin-top:14px" hidden>
+<h3 class="subh">Searches Apple matched</h3>
+<div style="overflow-x:auto"><table id="disct"><thead><tr><th>Search</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Inst.</th><th class="n">Spent</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="discnote" style="margin-top:8px;font-size:12px"></p>
+</div>
+<details id="kwd" style="margin-top:12px"><summary id="tlabel" class="subh" style="cursor:pointer">Per search term</summary>
+<div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Inst.</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey rows are paused terms.</p>
+</details>
+</section>
+</div>
+</div>
+
+<div class="grp" id="g-store">
+<h2 class="gh">Store</h2>
+<p class="gcap">How the app looks and ranks in the App Store.</p>
+<div class="gbody">
+<section class="card" id="rank">
+<h2>Search rank <span id="rankat"></span></h2>
+<p class="cap">Where our app shows up in App Store search, per term.</p>
+<table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
+<p class="note" id="ratings" style="margin-top:10px"></p>
+<p class="note" style="margin-top:6px;font-size:12px">Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p>
 </section>
 
-</div><div>
-<section class="card" id="bills">
-<h2>Upcoming bills (next 7 days)</h2>
-<p id="bsum" style="margin:0 0 8px;font-size:15px"></p>
-<div style="overflow-x:auto"><table id="bup"><tbody></tbody></table></div>
-<h2 style="margin-top:16px">What happened to charges that came due (14 days)</h2>
-<p id="btally" class="note" style="margin:0 0 6px"></p>
-<div style="overflow-x:auto"><table id="bhist"><tbody></tbody></table></div>
-<p class="note" id="bnote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="climb">
+<h2>Rank over time</h2>
+<p class="cap">The same searches, day by day.</p>
+<div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
+<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to now; higher up is better.</p>
 </section>
 
-<section class="card" id="cancels">
-<h2>Trial cancellations</h2>
-<p id="cxsum" style="margin:0 0 8px;font-size:15px"></p>
-<table id="cxb"><thead><tr><th>Turned auto-renew off</th><th class="n">Trials</th></tr></thead><tbody></tbody></table>
-<p id="cxmed" style="margin:10px 0 0;font-size:14px"></p>
-<p class="note" id="cxnote" style="margin-top:8px;font-size:12px"></p>
+<section class="card" id="reviews">
+<h2>Ratings and reviews</h2>
+<p class="cap">Star ratings and written reviews from the App Store.</p>
+<div id="rvhead"></div>
+<div id="rvlist"></div>
+<p class="note" id="rvnote" style="margin-top:8px;font-size:12px"></p>
 </section>
+</div>
+</div>
 
+<div class="grp" id="g-trends">
+<h2 class="gh">Trends</h2>
+<p class="gcap">Changes over time, with what we changed.</p>
+<div class="gbody">
 <section class="card" id="trends">
 <h2>Trends, with what we changed</h2>
+<p class="cap">Daily lines, with markers for the changes we made.</p>
 <div class="ctitle" style="margin-top:0">Installs per day: ads vs organic</div>
 <div class="cbox"><canvas id="tr_inst" role="img" aria-label="Installs per day, ads and organic"></canvas></div>
 <div class="grades" id="gr_inst"></div>
@@ -273,38 +371,23 @@ button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink
 <div id="mklist"></div>
 <p class="note" id="trnote" style="margin-top:8px;font-size:12px"></p>
 </section>
+</div>
+</div>
 
-<section class="card" id="reviews">
-<h2>Ratings and reviews</h2>
-<div id="rvhead"></div>
-<div id="rvlist"></div>
-<p class="note" id="rvnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-
-<section class="card" id="rank">
-<h2>Search rank <span id="rankat"></span></h2>
-<table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
-<p class="note" id="ratings" style="margin-top:10px"></p>
-<p class="note" style="margin-top:6px;font-size:12px">Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p>
-</section>
-
-<section class="card" id="climb">
-<h2>Rank over time</h2>
-<div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to now; higher up is better.</p>
-</section>
-
-<section class="card" id="users">
-<h2 id="ulabel">Users</h2>
-<div class="grid" id="ugrid"></div>
-<h2 style="margin-top:14px">Where people without a trial left</h2>
-<table id="left"><tbody></tbody></table>
-<h2 style="margin-top:14px">Each person (newest activity first)</h2>
+<div class="grp" id="g-people">
+<h2 class="gh">People</h2>
+<p class="gcap">The long detail list, one line per person.</p>
+<div class="gbody">
+<section class="card" id="peoplecard" data-title="Each person">
+<h2>Each person (newest activity first)</h2>
+<p class="cap">One line per person; tags show where they got to, plus plan and app version.</p>
 <div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Organic</button></div>
 <div id="people"></div>
 <p class="note" id="rc" style="font-size:12px;margin-top:8px"></p>
 </section>
-</div></div>
+</div>
+</div>
+</div>
 
 <p class="upd" style="text-align:center">Refreshes every 2 minutes · <button id="reload">Refresh now</button></p>
 </main>
@@ -792,8 +875,8 @@ async function load() {
 }
 $('reload').onclick = load;
 const links = [...document.querySelectorAll('nav a')];
-const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => { const on = a.hash === '#' + (e.target.id === 'termsd' ? 'terms' : e.target.id); a.classList.toggle('on', on); if (on) { const nv = a.parentNode; nv.scrollLeft = a.offsetLeft - nv.clientWidth / 2 + a.clientWidth / 2; } }); }), { rootMargin: '-40% 0px -55% 0px' });
-['ads', 'money', 'funnel', 'terms', 'termsd', 'bills', 'trends', 'reviews', 'rank', 'users'].forEach((id) => spy.observe($(id)));
+const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => { const on = a.hash === '#' + e.target.id; a.classList.toggle('on', on); if (on) { const nv = a.parentNode; nv.scrollLeft = a.offsetLeft - nv.clientWidth / 2 + a.clientWidth / 2; } }); }), { rootMargin: '-40% 0px -55% 0px' });
+['g-summary', 'g-money', 'g-customers', 'g-ads', 'g-store', 'g-trends', 'g-people'].forEach((id) => spy.observe($(id)));
 // ---- hide / show every card (David 10-16, A). Attaches to the common class .card, so cards added later get a button too.
 // State lives in localStorage under one key, per card id; the page works the same when storage is unavailable.
 (function () {
@@ -801,6 +884,17 @@ const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isInterse
   let mem = {};
   const read = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || '{}'); return v && typeof v === 'object' ? v : mem; } catch (e) { return mem; } };
   const write = (o) => { mem = o; try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} };
+  // 10-17: a few old cards were split or merged. Carry saved hide choices over once.
+  (function () {
+    try {
+      if (localStorage.getItem('tracker.hidden.mig1')) return;
+      const o = JSON.parse(localStorage.getItem(KEY) || '{}'); if (!o || typeof o !== 'object') return;
+      if (o.ads) { o.campcard = 1; o.splitcard = 1; }
+      if (o.users) { o.leftcard = 1; o.peoplecard = 1; }
+      if (o.terms && !o.termsd) delete o.terms;
+      localStorage.setItem(KEY, JSON.stringify(o)); localStorage.setItem('tracker.hidden.mig1', '1');
+    } catch (e) {}
+  })();
   let n = 0;
   const keyOf = (c) => {
     if (c.id) return c.id;
