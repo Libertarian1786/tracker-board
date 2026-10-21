@@ -153,6 +153,18 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 </div>
 </section>
 
+<section class="card" id="payers" data-title="Paying customers">
+<h2>Paying customers</h2>
+<p class="cap">Everyone who has paid real money, what each has paid so far, and whether their weekly plan is still running.</p>
+<div class="grid">
+<div><div class="k" id="py_active">–</div><div class="l">Paying weekly now</div></div>
+<div><div class="k" id="py_cancel">–</div><div class="l">Weekly, cancelled<div class="sub" style="font-size:11px;opacity:.75">paid, access ends soon</div></div></div>
+<div><div class="k" id="py_total">–</div><div class="l">Paid in total<div class="sub" id="py_sub" style="font-size:11px;opacity:.75"></div></div></div>
+</div>
+<div style="overflow-x:auto;margin-top:10px"><table id="pyt"><thead><tr><th>Customer</th><th>Plan</th><th class="n">Paid so far</th><th>Next</th></tr></thead><tbody></tbody></table></div>
+<p class="note" id="pynote" style="margin-top:8px;font-size:12px"></p>
+</section>
+
 <section class="card" id="arvbox" data-title="Apple review">
 <h2>Apple review</h2>
 <p class="cap">Where our app versions are in Apple's review, and what the reviewers did in the app.</p>
@@ -599,6 +611,23 @@ function funnelCard() {
   $('funnote').textContent = 'New installs in the period, split by the app version they installed on (App Store installs only, same people as the Summary). Every step means "got at least this far", so people are never lost between rows; "kept" is the share of the step before. FINISHED SETUP (rule since 10-17): from 1.8.6 the knowledge test is the last setup screen, so reaching it is not finishing. A person counts as finished when the offer pages were passed (offer_pages = completed / closed / skipped, or they reached an offer page) or they show later activity: a paywall outcome, a one-tap card on a locked door or the Home card, a buy tap, a trial or a purchase. Someone who only saw the knowledge test\'s own result card is not counted as finished; they are shown as "saw only the test result card" under Saw a price. The knowledge test rows are shares of installs (the test sits inside setup and is optional, 1.8.6 and newer only). TAPPED BUY is one definition used everywhere on this page (tag per person, Summary, By version, here): a buy button was pressed on a RevenueCat paywall (tracked from 1.8.5) or on a one-tap card (tapped, cancelled, pending, failed or bought, 1.8.6+); older versions show n/a. † = the Total counts only the app versions that record the step.';
 }
 
+function payersCard() {
+  const P = last.rc_payers || {};
+  const rows = P.rows || [];
+  $('py_active').textContent = P.weekly_active ?? '–';
+  $('py_cancel').textContent = P.weekly_cancelled ?? '–';
+  $('py_total').textContent = money(P.total_paid);
+  $('py_sub').textContent = rows.length ? `${rows.length} customer${rows.length > 1 ? 's' : ''}${P.pass ? ` · ${P.pass} one-time` : ''}` : '';
+  const plan = (r) => r.plan_kind === 'pass' ? 'One-time pass' : r.plan_kind === 'weekly' ? 'Weekly' : esc(r.plan_kind || '?');
+  const state = (r) => r.plan_kind === 'pass' ? '<span class="chip charged">owned</span>'
+    : r.plan_state === 'active' ? '<span class="chip charged">renewing</span>'
+    : r.plan_state === 'cancelled' ? '<span class="chip ended">cancelled</span>'
+    : `<span class="chip ended">${esc(r.plan_state || 'ended')}</span>`;
+  const next = (r) => r.plan_kind === 'pass' ? '–' : r.plan_state === 'active' && r.renews_at ? `bills ${esc(r.renews_at)}` : r.ends_at ? `access ends ${esc(r.ends_at)}` : '–';
+  $('pyt').tBodies[0].innerHTML = rows.length ? rows.map((r) => `<tr><td>#${esc(r.user)}<div class="sub">${esc(r.source)}${r.state ? ' · ' + esc(r.state) : ''}${r.purchase_app_version ? ' · ' + esc(r.purchase_app_version) : ''}</div></td><td>${plan(r)} ${state(r)}<div class="sub">${esc((r.product || '').replace(/^premium_/, ''))} · since ${esc(r.started_at || r.purchased_at || '')}</div></td><td class="n">${money(r.paid_usd)}${r.refunded_buys ? '<div class="sub down">refunded</div>' : ''}</td><td>${next(r)}</td></tr>`).join('') : '<tr><td colspan="4">Nobody has paid yet</td></tr>';
+  $('pynote').textContent = 'Real App Store customers only (our own test purchases and the Apple reviewers are left out). "Paid so far" is the gross amount RevenueCat has seen from that customer, before the Apple cut; it grows with each renewal. Free trials that never charged are not here. Times are Italy time.';
+}
+
 function convertedCard() {
   const rows = ((last.rc_converted || {})[range]) || [];
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -923,7 +952,7 @@ async function load() {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
     DZ = d.display_tz || DZ;
     $('upd').textContent = 'Updated ' + ago(d.updated) + ' (' + clock(Date.parse(d.updated)) + ')';
-    last = d; try { appleReviewCard(); } catch (e) {} summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
+    last = d; try { appleReviewCard(); } catch (e) {} try { payersCard(); } catch (e) { console.error(e); } summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
     try { paymentsCard(); insightsCard(); } catch (e) { console.error(e); }
     try { moneyCard(); trendsCard(); } catch (e) {}
     chart(d.ads_through_today || []);
