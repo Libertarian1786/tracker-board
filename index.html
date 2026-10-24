@@ -88,6 +88,8 @@ svg{width:100%;height:120px;display:block}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 button{font:inherit;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:4px 10px}
 .card{position:relative}
+tr.rgh td{font-weight:700;padding-top:12px;color:var(--accent)}tr.rgh .meta{font-weight:400;color:var(--mute);font-size:12px;margin-left:6px}
+#hist th:first-child,#hist td:first-child{position:sticky;left:0;background:var(--card);z-index:1;white-space:nowrap}
 .card>h2{padding-right:64px}
 .hbtn{position:absolute;top:8px;right:8px;z-index:2;font-size:11px;line-height:1.3;padding:2px 9px;border-radius:999px;color:var(--mute);background:var(--card);cursor:pointer}
 .card.padtop{padding-top:40px}
@@ -368,7 +370,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 
 <section class="card" id="climb">
 <h2>Rank over time</h2>
-<p class="cap">The same searches, day by day.</p>
+<p class="cap">The same searches, every day since tracking began. Scroll sideways for older days.</p>
 <div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
 <p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to now; higher up is better.</p>
 </section>
@@ -899,14 +901,21 @@ ${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}
 ${detailBox(p)}</div>`).join('') || '<p class="note">Nobody yet.</p>';
   $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are Italy time; days are Apple Ads days (Alaska). Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
+// 2026-10-24 (David: "Show every day", "Add more searches"): searches in groups (General / States / CDL,
+// from the rank tracker), every day since tracking began, the search column pinned while the days scroll.
+function rankGroups() {
+  const rg = last.rank_groups || {};
+  return { of: (t) => (rg.groups || {})[t] || 'General', order: rg.order || ['General', 'States', 'CDL'] };
+}
 function rankHistory(h) {
-  const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort().slice(-5);
+  const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort();
   const head = '<tr><th>Term</th>' + days.map((d) => `<th class="n">${d.slice(5).replace('-', '/')}</th>`).join('') + '<th class="n">Change</th></tr>';
-  const terms = Object.keys(h).sort((a, b) => {
-    const now = (t) => (h[t][h[t].length - 1] || {}).rank || 999;
-    return now(a) - now(b);
-  });
+  const now = (t) => (h[t][h[t].length - 1] || {}).rank || 999;
+  const G = rankGroups();
+  const sorted = Object.keys(h).sort((a, b) => now(a) - now(b));
+  const terms = G.order.flatMap((g) => { const ts = sorted.filter((t) => G.of(t) === g); return ts.length ? [{ group: g, n: ts.length, top: ts.filter((t) => now(t) < 999).length }, ...ts] : []; });
   const rowsH = terms.map((t) => {
+    if (typeof t === 'object') return `<tr class="rgh"><td colspan="${days.length + 2}">${esc(t.group)} <span class="meta">${t.top} of ${t.n} in the top 200</span></td></tr>`;
     const by = Object.fromEntries(h[t].map((x) => [x.day, x.rank]));
     const first = h[t].find((x) => x.rank), cur = h[t][h[t].length - 1];
     let ch = '';
@@ -960,7 +969,13 @@ async function load() {
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
     const rk = d.ranks || {};
     $('rankat').textContent = rk.at ? '(' + ago(rk.at) + ')' : '';
-    $('ranks').tBodies[0].innerHTML = (rk.rows || []).map((r) => {
+    const RG = rankGroups();
+    const rkRows = RG.order.flatMap((g) => {
+      const rs = (rk.rows || []).filter((r) => RG.of(r.term) === g).sort((a, b) => (a.rank || 999) - (b.rank || 999));
+      return rs.length ? [{ group: g, n: rs.length, top: rs.filter((r) => r.rank).length }, ...rs] : [];
+    });
+    $('ranks').tBodies[0].innerHTML = rkRows.map((r) => {
+      if (r.group) return `<tr class="rgh"><td colspan="4">${esc(r.group)} <span class="meta">${r.top} of ${r.n} in the top 200</span></td></tr>`;
       let ch = '';
       if (r.rank && r.prev) { const diff = r.prev - r.rank; ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–'; }
       else if (r.rank && !r.prev && r.had_prev) ch = '<span class="up">new</span>';
