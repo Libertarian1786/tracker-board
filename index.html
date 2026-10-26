@@ -370,9 +370,9 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 
 <section class="card" id="climb">
 <h2>Rank over time</h2>
-<p class="cap">The same searches, every day since tracking began. Scroll sideways for older days.</p>
+<p class="cap">The same searches, every day since tracking began. Newest day first; scroll sideways for older days.</p>
 <div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to now; higher up is better.</p>
+<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to the latest; higher up is better.</p>
 </section>
 
 <section class="card" id="reviews">
@@ -908,8 +908,9 @@ function rankGroups() {
   return { of: (t) => (rg.groups || {})[t] || 'General', order: rg.order || ['General', 'States', 'CDL'] };
 }
 function rankHistory(h) {
-  const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort();
-  const head = '<tr><th>Term</th>' + days.map((d) => `<th class="n">${d.slice(5).replace('-', '/')}</th>`).join('') + '<th class="n">Change</th></tr>';
+  // 2026-10-26 (David: not showing past 10/14 on the phone): newest day first, Change right after the term.
+  const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort().reverse();
+  const head = '<tr><th>Term</th><th class="n">Change</th>' + days.map((d) => `<th class="n">${d.slice(5).replace('-', '/')}</th>`).join('') + '</tr>';
   const now = (t) => (h[t][h[t].length - 1] || {}).rank || 999;
   const G = rankGroups();
   const sorted = Object.keys(h).sort((a, b) => now(a) - now(b));
@@ -925,7 +926,7 @@ function rankHistory(h) {
     } else if (cur && cur.rank && !first) ch = '';
     else if (cur && cur.rank && h[t].some((x) => x.rank === null && x.day < cur.day) && first && first.day === cur.day) ch = '<span class="up">new</span>';
     else if (first && cur && !cur.rank) ch = '<span class="down">out</span>';
-    return `<tr><td>${esc(t)}</td>` + days.map((d) => `<td class="n">${d in by ? (by[d] ? '#' + by[d] : '–') : ''}</td>`).join('') + `<td class="n">${ch}</td></tr>`;
+    return `<tr><td>${esc(t)}</td><td class="n">${ch}</td>` + days.map((d) => `<td class="n">${d in by ? (by[d] ? '#' + by[d] : '–') : ''}</td>`).join('') + '</tr>';
   }).join('');
   $('hist').tHead.innerHTML = head; $('hist').tBodies[0].innerHTML = rowsH;
 }
