@@ -123,6 +123,8 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 #arvbox h3{font-size:14px;font-weight:600;margin:14px 0 6px}
 .gbody{display:block}
 @media (min-width:900px){.cols{display:block}.gbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:start}.gbody>.card:last-child:nth-child(odd){grid-column:1/-1}}
+/* 2026-10-27 owner: "under some sections you have a bunch of explanations remove those so the tabs are more compact" - section captions and footnote explanations hidden; empty-state notes like "No data yet" stay. */
+.cap, p.note[style*="margin-top"], details#exclnote { display: none !important; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
