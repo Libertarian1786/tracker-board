@@ -595,8 +595,11 @@ function funnelCard() {
     { k: 'setup', l: 'Finished setup (offer pages)', prev: 'reached_test', ok: () => true },
     { k: 'saw_price', l: 'Saw a price', prev: 'setup', ok: () => true },
     { k: 'tapped', l: 'Pressed a buy button', prev: 'saw_price', ok: (x) => x.tracks_tap },
-    { k: 'converted', l: 'Started a trial or bought', prev: 'tapped', ok: () => true },
-    { k: 'paid', l: 'Paid (money charged)', prev: 'converted', ok: () => true },
+    // 2026-11-03 (owner: "seperate a buy from a trial on the funnel"): the two ways in, side by side under "Pressed a buy button".
+    { k: 'trial_any', l: 'Started a free trial', prev: 'tapped', ok: (x) => x.trial_any != null, sub: true },
+    { k: 'trial_paid', l: 'Trial turned into a payment', prev: 'trial_any', ok: (x) => x.trial_paid != null, sub: true },
+    { k: 'bought_direct', l: 'Bought without a trial', prev: 'tapped', ok: (x) => x.bought_direct != null, sub: true },
+    { k: 'paid', l: 'Paid in total (money charged)', prev: 'tapped', ok: () => true },
   ];
   const pc = (n, d) => d ? Math.round(n / d * 100) + '%' : '–';
   const prevFor = (st, x) => {
@@ -618,16 +621,16 @@ function funnelCard() {
       const num = x[st.k], d = st.k === 'installs' ? 0 : x[prevFor(st, x)];
       const extra = (st.k === 'reached_test' ? `<span class="pc">${x.test_finished} finished · ${x.test_skipped} skipped · ${x.test_left || 0} left mid-test</span>` : '')
         + (st.k === 'saw_price' && x.saw_test_card_only ? `<span class="pc">+${x.saw_test_card_only} saw only the test result card</span>` : '')
-        + (st.k === 'converted' && x.trial != null ? `<span class="pc">${x.trial} ${x.trial === 1 ? 'trial' : 'trials'} · ${x.paid} paid</span>` : '');
+        + (st.k === 'trial_any' && x.trial_any ? `<span class="pc">${x.trial_any - x.trial_paid} not charged yet or cancelled</span>` : '');
       return `<td class="n c">${num}${d ? `<span class="pc">${pc(num, d)} kept</span>` : ''}${extra}</td>`;
     }).join('');
     if (!split) {
       if (!st.ok(g[0])) return '';
-      return `<tr><td>${esc(st.l)}</td>${cells}</tr>`;
+      return `<tr><td${st.sub ? ' style="padding-left:18px"' : ''}>${st.sub ? '↳ ' : ''}${esc(st.l)}</td>${cells}</tr>`;
     }
     return `<tr><td>${esc(st.l)}</td><td class="n c">${tot}</td>${cells}</tr>`;
   }).join('');
-  $('funnote').textContent = 'People who installed in the period (App Store installs only), in the order the app shows things. Each row is part of the row above; "kept" is the share of the row above. Finished setup = got past the offer pages, or did anything later. Pressed a buy button counts everyone who pressed one, including people who then bought; the Summary\'s "tapped buy" counts only people who pressed and did not buy. Paid = money actually charged; a trial that has not charged yet is not paid. Counted by install date, so a purchase by someone who installed earlier appears in the Summary but not here. † = the Total counts only the app versions that record the step.';
+  $('funnote').textContent = 'People who installed in the period (App Store installs only), in the order the app shows things. Each row is part of the row above, except the ↳ rows: a free trial and a purchase without one are the two ways in after pressing a buy button, and both are shares of that row ("Trial turned into a payment" is a share of the trials). "kept" is that share. Finished setup = got past the offer pages, or did anything later. Pressed a buy button counts everyone who pressed one, including people who then bought; the Summary\'s "tapped buy" counts only people who pressed and did not buy. Paid = money actually charged; a trial that has not charged yet is not paid. Counted by install date, so a purchase by someone who installed earlier appears in the Summary but not here. † = the Total counts only the app versions that record the step.';
 }
 
 function payersCard() {
