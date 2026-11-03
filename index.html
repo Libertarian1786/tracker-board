@@ -581,23 +581,32 @@ function moneyCard() {
 }
 
 function funnelCard() {
-  const g = (((last.rc_funnel || {})[range]) || []);
+  const g0 = (((last.rc_funnel || {})[range]) || []);
   const label = range === 'day' ? 'today' : 'last 7 days';
   $('funlabel').textContent = 'Funnel (' + label + ')';
   const T = $('fun');
-  if (!g.length || !g.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>'; $('funnote').textContent = ''; return; }
+  if (!g0.length || !g0.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>'; $('funnote').textContent = ''; return; }
+  // 2026-11-03 (owner: "fix the tracker funnel it's set up poorly"): the app's own order, each row a part of the row above,
+  // ending in money actually charged; only app versions with installs in the period get a column.
+  const g = g0.filter((x) => x.installs);
   const steps = [
     { k: 'installs', l: 'Installed', prev: null, ok: () => true },
-    { k: 'setup', l: 'Finished setup', prev: 'installs', ok: () => true },
-    { k: 'test_started', l: 'Started knowledge test', prev: 'installs', ok: (x) => x.tracks_test, sub: true },
-    { k: 'test_finished', l: 'Finished it', prev: 'test_started', ok: (x) => x.tracks_test, sub: true },
+    { k: 'reached_test', l: 'Reached the knowledge test', prev: 'installs', ok: (x) => x.tracks_test && x.reached_test != null },
+    { k: 'setup', l: 'Finished setup (offer pages)', prev: 'reached_test', ok: () => true },
     { k: 'saw_price', l: 'Saw a price', prev: 'setup', ok: () => true },
-    { k: 'tapped', l: 'Tapped buy', prev: 'saw_price', ok: (x) => x.tracks_tap },
-    { k: 'converted', l: 'Got a trial or bought', prev: 'tapped', ok: () => true },
+    { k: 'tapped', l: 'Pressed a buy button', prev: 'saw_price', ok: (x) => x.tracks_tap },
+    { k: 'converted', l: 'Started a trial or bought', prev: 'tapped', ok: () => true },
+    { k: 'paid', l: 'Paid (money charged)', prev: 'converted', ok: () => true },
   ];
   const pc = (n, d) => d ? Math.round(n / d * 100) + '%' : '–';
-  const prevFor = (st, x) => st.k === 'converted' && !x.tracks_tap ? 'saw_price' : st.prev;
-  T.tHead.innerHTML = '<tr><th>Step</th><th class="n">Total</th>' + g.map((x) => `<th class="n">${esc(({ v186: '1.8.6+', v185: '1.8.5', old: '1.8.4 and older' })[x.key] || x.label)}<div class="sub" style="font-weight:400">${x.installs} installs</div></th>`).join('') + '</tr>';
+  const prevFor = (st, x) => {
+    if (st.k === 'setup' && !(x.tracks_test && x.reached_test != null)) return 'installs';
+    if (st.k === 'converted' && !x.tracks_tap) return 'saw_price';
+    return st.prev;
+  };
+  // One version only: the Total column is the whole story, so the per-version column is left out (it would repeat it).
+  const split = g.length > 1;
+  T.tHead.innerHTML = '<tr><th>Step</th><th class="n">' + (split ? 'Total' : 'People') + '</th>' + (split ? g.map((x) => `<th class="n">${esc(({ v186: '1.8.6+', v185: '1.8.5', old: '1.8.4 and older' })[x.key] || x.label)}<div class="sub" style="font-weight:400">${x.installs} installs</div></th>`).join('') : '') + '</tr>';
   T.tBodies[0].innerHTML = steps.map((st) => {
     const use = g.filter((x) => st.ok(x));
     const n = use.reduce((t, x) => t + x[st.k], 0);
@@ -607,12 +616,18 @@ function funnelCard() {
     const cells = g.map((x) => {
       if (!st.ok(x)) return '<td class="n na">n/a (older app)</td>';
       const num = x[st.k], d = st.k === 'installs' ? 0 : x[prevFor(st, x)];
-      const extra = (st.k === 'test_started' && x.test_skipped ? `<span class="pc">${x.test_skipped} skipped it</span>` : '') + (st.k === 'saw_price' && x.saw_test_card_only ? `<span class="pc">+${x.saw_test_card_only} saw only the test result card</span>` : '');
+      const extra = (st.k === 'reached_test' ? `<span class="pc">${x.test_finished} finished · ${x.test_skipped} skipped · ${x.test_left || 0} left mid-test</span>` : '')
+        + (st.k === 'saw_price' && x.saw_test_card_only ? `<span class="pc">+${x.saw_test_card_only} saw only the test result card</span>` : '')
+        + (st.k === 'converted' && x.trial != null ? `<span class="pc">${x.trial} ${x.trial === 1 ? 'trial' : 'trials'} · ${x.paid} paid</span>` : '');
       return `<td class="n c">${num}${d ? `<span class="pc">${pc(num, d)} kept</span>` : ''}${extra}</td>`;
     }).join('');
-    return `<tr class="${st.sub ? 'sub' : ''}"><td>${esc(st.l)}${st.sub ? '<div class="sub">1.8.6 and newer only, happens inside setup; share of installs</div>' : ''}</td><td class="n c">${tot}</td>${cells}</tr>`;
+    if (!split) {
+      if (!st.ok(g[0])) return '';
+      return `<tr><td>${esc(st.l)}</td>${cells}</tr>`;
+    }
+    return `<tr><td>${esc(st.l)}</td><td class="n c">${tot}</td>${cells}</tr>`;
   }).join('');
-  $('funnote').textContent = 'New installs in the period, split by the app version they installed on (App Store installs only, same people as the Summary). Every step means "got at least this far", so people are never lost between rows; "kept" is the share of the step before. FINISHED SETUP (rule since 10-17): from 1.8.6 the knowledge test is the last setup screen, so reaching it is not finishing. A person counts as finished when the offer pages were passed (offer_pages = completed / closed / skipped, or they reached an offer page) or they show later activity: a paywall outcome, a one-tap card on a locked door or the Home card, a buy tap, a trial or a purchase. Someone who only saw the knowledge test\'s own result card is not counted as finished; they are shown as "saw only the test result card" under Saw a price. The knowledge test rows are shares of installs (the test sits inside setup and is optional, 1.8.6 and newer only). TAPPED BUY is one definition used everywhere on this page (tag per person, Summary, By version, here): a buy button was pressed on a RevenueCat paywall (tracked from 1.8.5) or on a one-tap card (tapped, cancelled, pending, failed or bought, 1.8.6+); older versions show n/a. † = the Total counts only the app versions that record the step.';
+  $('funnote').textContent = 'People who installed in the period (App Store installs only), in the order the app shows things. Each row is part of the row above; "kept" is the share of the row above. Finished setup = got past the offer pages, or did anything later. Pressed a buy button counts everyone who pressed one, including people who then bought; the Summary\'s "tapped buy" counts only people who pressed and did not buy. Paid = money actually charged; a trial that has not charged yet is not paid. Counted by install date, so a purchase by someone who installed earlier appears in the Summary but not here. † = the Total counts only the app versions that record the step.';
 }
 
 function payersCard() {
