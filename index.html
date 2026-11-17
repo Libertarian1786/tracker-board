@@ -156,7 +156,11 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
 <div><div class="k" id="sum_rcount">–</div><div class="l">App Store ratings (US)</div></div>
 <div><div class="k" id="sum_ravg">–</div><div class="l">Average stars</div></div>
+<div><div class="k" id="sum_rpv">–</div><div class="l">/rate page visits<div class="sub" id="sum_rpv_all" style="font-size:11px;opacity:.75"></div></div></div>
+<div><div class="k" id="sum_rpi">–</div><div class="l">/rate Install taps<div class="sub" id="sum_rpi_all" style="font-size:11px;opacity:.75"></div></div></div>
+<div><div class="k" id="sum_rpr">–</div><div class="l">/rate "Rate it" taps<div class="sub" id="sum_rpr_all" style="font-size:11px;opacity:.75"></div></div></div>
 </div>
+<p class="upd" id="sum_rp_where" style="margin:6px 0 0"></p>
 </section>
 
 <section class="card" id="payers" data-title="Paying customers">
@@ -826,7 +830,15 @@ function trendsCard() {
 }
 
 // ---- ratings and reviews
+function ratePageSummary() {  // 2026-11-17 owner: /rate page stats in the top Summary
+  const p = last.rate_page; if (!p) return;
+  $('sum_rpv').textContent = p.today_visits; $('sum_rpv_all').textContent = 'today · ' + p.visits + ' all time';
+  $('sum_rpi').textContent = p.today_install_taps; $('sum_rpi_all').textContent = 'today · ' + p.install_taps + ' all time';
+  $('sum_rpr').textContent = p.today_rate_taps; $('sum_rpr_all').textContent = 'today · ' + p.rate_taps + ' all time';
+  $('sum_rp_where').textContent = (p.places && p.places.length ? '/rate page by place: ' + p.places.join(' · ') : '') + (p.last ? ' · last activity ' + p.last : '');
+}
 function reviewsCard() {
+  try { ratePageSummary(); } catch (e) {}
   const r = last.reviews;
   // 2026-11-17 owner: ratings tracker near the top, in the Summary
   if (r && r.rating_count != null) { $('sum_rcount').textContent = r.rating_count; $('sum_ravg').textContent = Number(r.rating_avg).toFixed(1) + ' ★'; }
