@@ -132,7 +132,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <main>
 <div class="arvban" id="arvban" role="status"></div>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
-<p class="upd" style="margin:-4px 0 8px"><b>Times are Italy time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
+<p class="upd" style="margin:-4px 0 8px"><b>Times are Nashville time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
 <p class="upd" style="margin:-4px 0 8px"><a href="#" id="showall">Show all</a><span id="hidcount"></span> <span>· each section has a Hide button at its top right; hidden sections stay hidden after a refresh</span></p>
 <nav aria-label="Jump to a group"><a href="#g-summary" class="on">Summary</a><a href="#g-money">Money</a><a href="#g-customers">Customers</a><a href="#g-ads">Ads</a><a href="#g-store">Store</a><a href="#g-trends">Trends</a><a href="#g-people">People</a></nav>
 <div class="cols">
@@ -328,7 +328,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 
 <section class="card">
 <h2>Today, through the day</h2>
-<p class="cap">Taps and installs by hour today, in Italy time.</p>
+<p class="cap">Taps and installs by hour today, in Nashville time.</p>
 <svg id="chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Taps and installs through today"></svg>
 <div class="upd" id="chartaxis" style="display:flex;justify-content:space-between;font-size:11px"></div>
 <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Taps</span><span><span class="dot" style="background:var(--good)"></span>Installs</span></div>
@@ -403,7 +403,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div class="ctitle">Trials and paid charges per day</div>
 <div class="cbox"><canvas id="tr_conv" role="img" aria-label="Trials and paid charges per day"></canvas></div>
 <div class="grades" id="gr_conv"></div>
-<div class="ctitle">What the dashed vertical lines are (Italy time)</div>
+<div class="ctitle">What the dashed vertical lines are (Nashville time)</div>
 <div id="mklist"></div>
 <p class="note" id="trnote" style="margin-top:8px;font-size:12px"></p>
 </section>
@@ -432,8 +432,8 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 const DATA = 'https://raw.githubusercontent.com/Libertarian1786/tracker-board/data/data.json';
 const $ = (id) => document.getElementById(id);
 const money = (v) => v == null || v === '' ? '–' : '$' + Number(v).toFixed(2);
-// Clock times are shown in the display zone named by the data (tracker_zone.DISPLAY_ZONE_NAME, Europe/Rome); days stay on Apple Ads (Alaska) days.
-let DZ = 'Europe/Rome';
+// Clock times are shown in the display zone named by the data (tracker_zone.DISPLAY_ZONE_NAME, America/Chicago); days stay on Apple Ads (Alaska) days.
+let DZ = 'America/Chicago';
 function clock(t) {
   try {
     const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: DZ, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
@@ -647,7 +647,7 @@ function payersCard() {
     : `<span class="chip ended">${esc(r.plan_state || 'ended')}</span>`;
   const next = (r) => r.plan_kind === 'pass' ? '–' : r.plan_state === 'active' && r.renews_at ? `bills ${esc(r.renews_at)}` : r.ends_at ? `access ends ${esc(r.ends_at)}` : '–';
   $('pyt').tBodies[0].innerHTML = rows.length ? rows.map((r) => `<tr><td>#${esc(r.user)}<div class="sub">${esc(r.source)}${r.state ? ' · ' + esc(r.state) : ''}${r.purchase_app_version ? ' · ' + esc(r.purchase_app_version) : ''}</div></td><td>${plan(r)} ${state(r)}<div class="sub">${esc((r.product || '').replace(/^premium_/, ''))} · since ${esc(r.started_at || r.purchased_at || '')}</div></td><td class="n">${money(r.paid_usd)}${r.refunded_buys ? '<div class="sub down">refunded</div>' : ''}</td><td>${next(r)}</td></tr>`).join('') : '<tr><td colspan="4">Nobody has paid yet</td></tr>';
-  $('pynote').textContent = 'Real App Store customers only (our own test purchases and the Apple reviewers are left out). "Paid so far" is the gross amount RevenueCat has seen from that customer, before the Apple cut; it grows with each renewal. Free trials that never charged are not here. Times are Italy time.';
+  $('pynote').textContent = 'Real App Store customers only (our own test purchases and the Apple reviewers are left out). "Paid so far" is the gross amount RevenueCat has seen from that customer, before the Apple cut; it grows with each renewal. Free trials that never charged are not here. Times are Nashville time.';
 }
 
 function convertedCard() {
@@ -775,7 +775,7 @@ function billsCard() {
   $('btally').textContent = h.length ? `${t.charged || 0} charged · ${t.failed || 0} failed · ${t['billing issue'] || 0} billing issue · ${t.ended || 0} ended with no charge` : 'Nothing has come due yet.';
   const chip = (r) => `<span class="chip ${r === 'charged' ? 'charged' : r === 'ended' ? 'ended' : r === 'failed' ? 'failed' : 'issue'}">${r === 'charged' ? 'charged' : r === 'ended' ? 'no charge' : r === 'failed' ? 'FAILED' : 'billing issue'}</span>`;
   $('bhist').tBodies[0].innerHTML = h.length ? h.map((o) => `<tr><td>${esc(o.when)}</td><td>${esc(o.kind)}<div class="sub">#${esc(o.user)}</div></td><td>${chip(o.result)}</td><td class="n">${o.result === 'charged' ? money(o.amount) : o.amount ? '<span class="sub">' + money(o.amount) + ' due</span>' : '–'}</td></tr><tr><td colspan="4" class="sub" style="border-top:0;padding-top:0">${esc(o.note)}</td></tr>`).join('') : '';
-  $('bnote').textContent = 'Real App Store subscriptions only (our own test purchases are left out). Times are Italy time. "Will charge" = set to renew; "cancelled" = access ends then, nothing is charged. After the date passes the outcome comes from RevenueCat: charged (the period moved on and money came in), FAILED (it was set to renew but ended with no charge), billing issue (Apple could not take the payment), or no charge (cancelled earlier, ended as planned). For entries from before this was tracked, the reason a trial ended without a charge is unknown (cancelled or failed). Expected amounts use the plan\'s current price; "you keep" assumes Apple takes 15%. Checked ' + (b.updated ? ago(b.updated) : '') + '.';
+  $('bnote').textContent = 'Real App Store subscriptions only (our own test purchases are left out). Times are Nashville time. "Will charge" = set to renew; "cancelled" = access ends then, nothing is charged. After the date passes the outcome comes from RevenueCat: charged (the period moved on and money came in), FAILED (it was set to renew but ended with no charge), billing issue (Apple could not take the payment), or no charge (cancelled earlier, ended as planned). For entries from before this was tracked, the reason a trial ended without a charge is unknown (cancelled or failed). Expected amounts use the plan\'s current price; "you keep" assumes Apple takes 15%. Checked ' + (b.updated ? ago(b.updated) : '') + '.';
 }
 
 // ---- trends
@@ -919,7 +919,7 @@ ${p.plan_state ? planLine(p) : (p.trial_start ? `<div class="meta">Trial ${esc(p
 ${cancelLines(p)}
 ${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}
 ${detailBox(p)}</div>`).join('') || '<p class="note">Nobody yet.</p>';
-  $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are Italy time; days are Apple Ads days (Alaska). Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
+  $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are Nashville time; days are Apple Ads days (Alaska). Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
 // 2026-10-24 (David: "Show every day", "Add more searches"): searches in groups (General / States / CDL,
 // from the rank tracker), every day since tracking began, the search column pinned while the days scroll.
