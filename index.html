@@ -154,6 +154,8 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div><div class="k" id="cpt">–</div><div class="l">Per tap</div></div>
 <div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
 <div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
+<div><div class="k" id="sum_rcount">–</div><div class="l">App Store ratings (US)</div></div>
+<div><div class="k" id="sum_ravg">–</div><div class="l">Average stars</div></div>
 </div>
 </section>
 
@@ -826,6 +828,8 @@ function trendsCard() {
 // ---- ratings and reviews
 function reviewsCard() {
   const r = last.reviews;
+  // 2026-11-17 owner: ratings tracker near the top, in the Summary
+  if (r && r.rating_count != null) { $('sum_rcount').textContent = r.rating_count; $('sum_ravg').textContent = Number(r.rating_avg).toFixed(1) + ' ★'; }
   if (!r) { $('rvhead').innerHTML = '<p class="note">Not connected yet.</p>'; return; }
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
   $('rvhead').innerHTML = r.rating_count != null ? `<div class="grid" style="grid-template-columns:repeat(2,1fr)"><div><div class="big">${Number(r.rating_avg).toFixed(1)} <span style="color:#f59e0b;font-size:20px">★</span></div><div class="l">Average rating (US)</div></div><div><div class="big">${r.rating_count}</div><div class="l">Ratings${r.version ? ' · current version ' + esc(r.version) + ': ' + (r.rating_count_version ?? '–') : ''}</div></div></div>` : '<p class="note">Rating not available right now.</p>';
