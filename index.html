@@ -125,6 +125,14 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 @media (min-width:900px){.cols{display:block}.gbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:start}.gbody>.card:last-child:nth-child(odd){grid-column:1/-1}}
 /* 2026-10-27 owner: "under some sections you have a bunch of explanations remove those so the tabs are more compact" - section captions and footnote explanations hidden; empty-state notes like "No data yet" stay. */
 .cap, p.note[style*="margin-top"], details#exclnote { display: none !important; }
+/* 2026-11-18 Ratings group: the "what cannot be known" box and short notes stay visible on purpose */
+.rlim{margin:0 0 12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13.5px}
+.rlim b{display:block;margin-bottom:2px}
+.rnote{color:var(--mute);font-size:12px;margin:8px 0 0}
+#rt_tl td,#rt_tl th,#rt_days td,#rt_days th,#rt_instdays td,#rt_instdays th,#rt_asklist td,#rt_asklist th,#rt_ratelist td,#rt_ratelist th,#rt_cc td,#rt_cc th{font-size:13px;padding:6px 4px}
+#rt_tl td:first-child,#rt_days td:first-child,#rt_instdays td:first-child,#rt_asklist td:first-child,#rt_ratelist td:first-child{white-space:nowrap}
+#rt_tl tr.hit td{background:rgba(245,158,11,.14)}
+#rt_tl .sub,#rt_asklist .sub{display:block}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
@@ -134,7 +142,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
 <p class="upd" style="margin:-4px 0 8px"><b>Times are Nashville time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
 <p class="upd" style="margin:-4px 0 8px"><a href="#" id="showall">Show all</a><span id="hidcount"></span> <span>· each section has a Hide button at its top right; hidden sections stay hidden after a refresh</span></p>
-<nav aria-label="Jump to a group"><a href="#g-summary" class="on">Summary</a><a href="#g-money">Money</a><a href="#g-customers">Customers</a><a href="#g-ads">Ads</a><a href="#g-store">Store</a><a href="#g-trends">Trends</a><a href="#g-people">People</a></nav>
+<nav aria-label="Jump to a group"><a href="#g-summary" class="on">Summary</a><a href="#g-money">Money</a><a href="#g-customers">Customers</a><a href="#g-ads">Ads</a><a href="#g-store">Store</a><a href="#g-trends">Trends</a><a href="#g-people">People</a><a href="#g-ratings">Rating page</a></nav>
 <div class="cols">
 <div class="grp" id="g-summary">
 <h2 class="gh">Summary</h2>
@@ -426,6 +434,67 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Organic</button></div>
 <div id="people"></div>
 <p class="note" id="rc" style="font-size:12px;margin-top:8px"></p>
+</section>
+</div>
+</div>
+
+<!-- 2026-11-18 (David: "a section with the full tracking of the rating page such as when and where the people installing and reviewing are") -->
+<div class="grp" id="g-ratings">
+<h2 class="gh">Rating page (drivedrill.app/rate)</h2>
+<p class="gcap">Full history (nothing rolls off), Nashville time. Visits and taps on the rate page, when and where; then App Store ratings and in-app asks to line them up against.</p>
+<div class="gbody">
+<section class="card" id="rp_days" data-title="Rate page by day">
+<h2>Rate page by day</h2>
+<div id="rp_sum"></div>
+<table id="rp_daytab"><thead><tr><th>Day</th><th class="n">Visits</th><th class="n">Install taps</th><th class="n">Rate-it taps</th></tr></thead><tbody></tbody></table>
+<p class="rnote" id="rp_daynote"></p>
+</section>
+<section class="card" id="rp_states" data-title="Rate page by state">
+<h2>Rate page by state</h2>
+<table id="rp_statetab"><thead><tr><th>State</th><th class="n">Visits</th><th class="n">Install taps</th><th class="n">Rate-it taps</th></tr></thead><tbody></tbody></table>
+<p class="rnote">Place = the visitor's approximate city and state from their internet connection, looked up by the page itself; no IP or ID is kept. "Unknown" = the lookup gave nothing (often a VPN or private relay).</p>
+</section>
+<section class="card" id="rt_rate" data-title="Rate page, each event">
+<h2>Rate page, each event</h2>
+<div style="overflow-x:auto"><table id="rt_ratelist"><thead><tr><th>When</th><th>What</th><th>City</th><th>State</th></tr></thead><tbody></tbody></table></div>
+<p class="rnote" id="rt_ratenote"></p>
+</section>
+</div>
+<h3 class="gh" style="font-size:17px;margin-top:22px">App Store ratings, to line up against</h3>
+<div class="rlim" id="rt_lim"></div>
+<div class="gbody">
+<section class="card" id="rt_timeline" data-title="Taps, asks, then ratings">
+<h2>Rate page taps, asks, then new ratings</h2>
+<div style="overflow-x:auto"><table id="rt_tl"><thead><tr><th>Day</th><th class="n">Rate page taps</th><th class="n">In-app asks</th><th class="n">Write-review taps</th><th class="n">New ratings</th><th class="n">Reviews</th><th class="n">Installs</th></tr></thead><tbody></tbody></table></div>
+<p class="rnote" id="rt_tlnote"></p>
+</section>
+<section class="card" id="rt_over" data-title="Ratings over time">
+<h2>Ratings over time</h2>
+<div id="rt_now"></div>
+<div style="overflow-x:auto"><table id="rt_days"><thead><tr><th>Day</th><th class="n">Total</th><th class="n">New</th><th class="n">Average</th></tr></thead><tbody></tbody></table></div>
+<p class="rnote" id="rt_overnote"></p>
+</section>
+<section class="card" id="rt_reviews" data-title="Written reviews">
+<h2>Written reviews (every one)</h2>
+<div id="rt_rvlist"></div>
+<p class="rnote" id="rt_rvnote"></p>
+</section>
+<section class="card" id="rt_where" data-title="Where ratings come from">
+<h2>Where ratings come from</h2>
+<table id="rt_cc"><thead><tr><th>Store</th><th class="n">Ratings</th><th class="n">Average</th><th class="n">This version</th></tr></thead><tbody></tbody></table>
+<p class="rnote" id="rt_ccnote"></p>
+</section>
+<section class="card" id="rt_inst" data-title="Installs by day and country">
+<h2>Installs by day and country</h2>
+<div id="rt_instsum"></div>
+<div style="overflow-x:auto"><table id="rt_instdays"><thead><tr><th>Apple day</th><th class="n">First-time</th><th class="n">Re-downloads</th><th>Countries</th></tr></thead><tbody></tbody></table></div>
+<p class="rnote" id="rt_instnote"></p>
+</section>
+<section class="card" id="rt_asks" data-title="In-app rating asks">
+<h2>In-app rating asks and Write-a-review taps</h2>
+<div id="rt_asksum"></div>
+<div style="overflow-x:auto"><table id="rt_asklist"><thead><tr><th>Day</th><th>What</th><th>Version</th><th>State</th><th>Person</th></tr></thead><tbody></tbody></table></div>
+<p class="rnote" id="rt_asknote"></p>
 </section>
 </div>
 </div>
@@ -995,6 +1064,60 @@ function appleReviewCard() {
   $('arva').tBodies[0].innerHTML = act.length ? act.map((a) => `<tr><td>${esc(a.last)}${Date.now() - a.last_ms <= 30 * 60000 ? ' <span class="chip arv-now">active now</span>' : ''}<div class="sub">${esc(a.state || '')}</div></td><td>${a.version ? 'v' + esc(a.version) : '–'}<div class="sub">${a.kind === 'review device' ? 'Apple review device' : 'unreleased version'}</div></td><td>${esc((a.actions || []).join('; ') || 'opened the app only')}</td></tr>`).join('') : '<tr><td colspan="3">No reviewer device seen</td></tr>';
   $('arvnote').textContent = 'App Store Connect state checked ' + r.checked + ' (re-checked about every 5 minutes; Apple gives no timestamp for state changes, so "first seen" is when this tracker noticed). Reviewer activity = Apple review test devices (first seen on a version before it was public, or on one that was never released) plus anyone on a not-yet-released version; they are left out of all other counts. The banner at the top shows when any version is In review or a reviewer device was active in the last 30 minutes.';
 }
+// ---- 2026-11-18 Rating page (drivedrill.app/rate) + App Store ratings, at the bottom
+function ratingsCard() {
+  const R = last.ratings;
+  if (!R) { $('rp_sum').innerHTML = '<p class="note">' + esc(last.ratings_error ? 'Could not build: ' + last.ratings_error : 'No data yet.') + '</p>'; return; }
+  const md = (d) => { const [y, m, dd] = d.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m - 1] + ' ' + (+dd); };
+  const EV = { visit: 'Visit', install_tap: 'Install tap', rate_tap: 'Rate-it tap' };
+  const z = (n) => n ? n : '<span style="color:var(--mute)">0</span>';
+  // rate page
+  const P = R.rate_page || {}, T = P.totals_30d || {}, A = P.abacus_all_time || {};
+  $('rp_sum').innerHTML = `<div class="grid"><div><div class="k">${T.visit || 0}</div><div class="l">Visits (logged)</div></div><div><div class="k">${T.install_tap || 0}</div><div class="l">Install taps</div></div><div><div class="k">${T.rate_tap || 0}</div><div class="l">Rate-it taps</div></div></div>`;
+  $('rp_daytab').tBodies[0].innerHTML = (P.days || []).map((d) => `<tr><td>${md(d.day)}</td><td class="n">${z(d.visit)}</td><td class="n">${z(d.install_tap)}</td><td class="n">${z(d.rate_tap)}</td></tr>`).join('') || '<tr><td colspan="4">No visits logged yet</td></tr>';
+  $('rp_daynote').textContent = 'Days with any activity. Events logged since ' + (P.first_logged ? md(P.first_logged.slice(0, 10)) + ' ' + P.first_logged.slice(11) : '–') + ' Nashville (the page\'s event log keeps only about 12 hours, and nothing read it between Nov 16 and Nov 18, so earlier events are lost). Page counter, all time: ' + (A.visits || '–') + ' visits, ' + (A.install_taps || '–') + ' install taps, ' + (A.rate_taps === '0' || A.rate_taps === 0 ? '0 rate-it taps (the counter has never recorded one, though the event log has; the log is the one to trust)' : (A.rate_taps || '–') + ' rate-it taps') + '. Claude\'s own test visit is left out.';
+  $('rp_statetab').tBodies[0].innerHTML = (P.by_state || []).map((s) => `<tr><td>${esc(s.state)}${s.cities.length ? '<span class="sub">' + esc(s.cities.join(', ')) + '</span>' : ''}</td><td class="n">${z(s.visit)}</td><td class="n">${z(s.install_tap)}</td><td class="n">${z(s.rate_tap)}</td></tr>`).join('') || '<tr><td colspan="4">None yet</td></tr>';
+  $('rt_ratelist').tBodies[0].innerHTML = (P.events || []).map((x) => `<tr><td>${esc(x.when)}</td><td>${x.event === 'visit' ? EV.visit : '<b>' + esc(EV[x.event] || x.event) + '</b>'}</td><td>${esc(x.city || '–')}</td><td>${esc(x.state || 'Unknown')}${x.country ? ' (' + esc(x.country) + ')' : ''}</td></tr>`).join('') || '<tr><td colspan="4">None yet</td></tr>';
+  $('rt_ratenote').textContent = 'Every visit and button tap, newest first, Nashville time. Install tap = the "Get the app" button; Rate-it tap = the button that opens the App Store review page. A tap does not prove the person rated; Apple does not say.';
+  // limits
+  $('rt_lim').innerHTML = '<b>What cannot be known</b>' + esc(R.limits || '');
+  // timeline
+  const tl = (R.timeline || []).filter((d) => d.any);
+  $('rt_tl').tBodies[0].innerHTML = tl.map((d) => {
+    const src = Object.entries(d.ask_sources || {}).map(([k, v]) => v + ' ' + k).join(', ');
+    const rp = d.rate_taps || d.rate_install_taps ? `${d.rate_taps}<span class="sub">${d.rate_install_taps} install · ${d.rate_visits} visits</span>` : d.rate_visits ? `0<span class="sub">${d.rate_visits} visits</span>` : z(0);
+    return `<tr class="${d.new_ratings ? 'hit' : ''}"><td>${md(d.day)}</td><td class="n">${rp}</td><td class="n">${d.asks ? d.asks + '<span class="sub">' + esc(src) + (d.ask_versions.length ? ' · v' + esc(d.ask_versions.join(', v')) : '') + '</span>' : z(0)}</td><td class="n">${z(d.write_review)}</td><td class="n">${d.new_ratings ? '<b>+' + d.new_ratings + '</b><span class="sub">first seen ' + esc(d.new_first_seen) + '</span>' : z(0)}</td><td class="n">${z(d.reviews)}</td><td class="n">${d.installs == null ? '–' : d.installs}</td></tr>`;
+  }).join('') || '<tr><td colspan="7">Nothing yet</td></tr>';
+  $('rt_tlnote').textContent = 'Only days with a rate-page visit, an ask, a tap, a new rating or a review. Highlighted = the App Store rating count went up that day. Installs = Apple\'s first-time downloads for Apple\'s day ("–" = Apple has not published it yet). In-app asks are dated by the phone; Apple decides whether the prompt actually showed.';
+  // ratings over time
+  const N = R.now || {};
+  $('rt_now').innerHTML = `<div class="grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:8px"><div><div class="big">${N.count ?? '–'}</div><div class="l">Ratings now (US store)</div></div><div><div class="big">${N.avg != null ? Number(N.avg).toFixed(1) : '–'} <span style="color:#f59e0b;font-size:20px">★</span></div><div class="l">Average</div></div></div>`;
+  $('rt_days').tBodies[0].innerHTML = (R.ratings || []).map((d) => `<tr class="${d.new ? 'hit' : ''}"><td>${md(d.day)}</td><td class="n">${d.count}</td><td class="n">${d.new ? '<b>+' + d.new + '</b>' : z(0)}</td><td class="n">${Number(d.avg).toFixed(2)}</td></tr>`).join('');
+  $('rt_overnote').textContent = 'Highest count seen each Nashville day on the public US listing (checked every hour with the rank check). New = rise over every earlier day. Apple only gives the running average, not each rating\'s stars.';
+  // reviews
+  const st = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const rv = (R.reviews || {}).rows || [];
+  $('rt_rvlist').innerHTML = rv.length ? rv.map((x) => `<div class="rv"><div class="top" style="display:flex;justify-content:space-between;gap:8px"><span><span class="st">${st(x.stars)}</span> <b>${esc(x.title)}</b></span><span class="upd">${esc(x.when)} · ${esc(x.country)}</span></div><div>${esc(x.text)}</div></div>`).join('') : '<p class="note">No written reviews yet.</p>';
+  $('rt_rvnote').textContent = 'Every written review from App Store Connect (' + rv.length + ' so far), newest first, Nashville time, with the storefront. Most ratings come with no written review. Re-read every 6 hours.';
+  // countries
+  const C = R.countries || {};
+  $('rt_cc').tBodies[0].innerHTML = (C.rows || []).map((r) => `<tr><td>${esc(r.cc)}</td><td class="n">${r.count}</td><td class="n">${r.avg}</td><td class="n">${r.count_version ?? '–'}${r.version ? ' <span class="sub">v' + esc(r.version) + '</span>' : ''}</td></tr>`).join('') || '<tr><td colspan="4">No answer from Apple</td></tr>';
+  $('rt_ccnote').textContent = 'Apple\'s public listing, asked store by store (checked ' + (C.checked || '–') + '). The app is only sold in the US store, so every rating is a US rating; ' + (C.not_sold || []).join(', ') + ' returned no listing. Apple gives no state or city for ratings.';
+  // installs
+  const I = R.installs || {};
+  const tot = (I.days || []).reduce((a, d) => a + d.first, 0);
+  $('rt_instsum').innerHTML = `<p style="margin:0 0 6px;font-size:14px"><b>${tot}</b> first-time downloads since ${I.days && I.days.length ? md(I.days[I.days.length - 1].day) : '–'} · by country: ${(I.by_country || []).map((c) => esc(c.cc) + ' ' + c.first).join(', ') || '–'} · how they found it: ${(I.by_source || []).map((c) => esc(c.source) + ' ' + c.first).join(', ') || '–'}</p>`;
+  $('rt_instdays').tBodies[0].innerHTML = (I.days || []).map((d) => `<tr><td>${md(d.day)}</td><td class="n">${d.first}</td><td class="n">${z(d.redownloads)}</td><td>${Object.entries(d.by_country || {}).map(([k, v]) => esc(k) + ' ' + v).join(', ') || '–'}</td></tr>`).join('') || '<tr><td colspan="4">No Apple report yet</td></tr>';
+  $('rt_instnote').textContent = 'Apple analytics (App Downloads report), Apple\'s own day, newest ' + (I.through ? md(I.through) : '–') + '. Apple publishes a day a day or two later and leaves out very small groups for privacy, so these can be a little under the sales report.';
+  // in-app asks
+  const E = R.events || {};
+  const pairs = (a) => (a || []).map(([k, v]) => esc(k) + ' ' + v).join(', ') || '–';
+  $('rt_asksum').innerHTML = `<p style="margin:0 0 6px;font-size:14px"><b>${(E.asks || []).length}</b> people asked since tracking began, <b>${(E.write_review || []).length}</b> Write-a-review taps.<br><span class="sub">By trigger: ${pairs(E.by_source)}<br>By app version: ${pairs((E.by_version || []).map(([k, v]) => ['v' + k, v]))}<br>By state: ${pairs(E.by_state)}</span></p>`;
+  const rows = [...(E.asks || []).map((x) => ({ ...x, what: 'Rating prompt asked · ' + x.source_label + (x.count > 1 ? ' (' + x.count + '× in all)' : '') })),
+    ...(E.write_review || []).map((x) => ({ ...x, what: '<b>Write-a-review tapped</b>' + (x.count > 1 ? ' (' + x.count + '×)' : '') }))].sort((a, b) => (b.day + b.time).localeCompare(a.day + a.time));
+  $('rt_asklist').tBodies[0].innerHTML = rows.map((x) => `<tr><td>${md(x.day)}${x.time ? ' ' + esc(x.time) : ''}</td><td>${x.what.startsWith('<b>') ? x.what : esc(x.what)}</td><td>${x.version ? (x.version_approx ? '~' : '') + 'v' + esc(x.version) : '–'}</td><td>${esc(x.state || '–')}</td><td>${esc(x.user)}</td></tr>`).join('') || '<tr><td colspan="5">None yet</td></tr>';
+  $('rt_asknote').textContent = 'From what the app sends RevenueCat: the LAST time each person was asked (and how many times in all), the trigger, and the Write-a-review button in Settings. Day = the phone\'s date; a clock time shows only when RevenueCat\'s update time falls on that date. ~v = version estimated from release dates (the person updated in between). Person = the short code in the People list. Test and Apple review devices are left out. ' + (E.with_sessions_attr ? E.with_sessions_attr + ' people also sent rating_prompt_sessions.' : 'No one has sent rating_prompt_sessions yet.');
+}
 async function load() {
   try {
     const d = await (await fetch(DATA + '?t=' + Date.now(), { cache: 'no-store' })).json();
@@ -1003,6 +1126,7 @@ async function load() {
     last = d; try { appleReviewCard(); } catch (e) {} try { payersCard(); } catch (e) { console.error(e); } summary(); agesTable(); versionsTable(); adsByAge(); funnelCard(); termsDollars(); billsCard(); reviewsCard(); try { convertedCard(); cancelsCard(); } catch (e) {}
     try { paymentsCard(); insightsCard(); } catch (e) { console.error(e); }
     try { moneyCard(); trendsCard(); } catch (e) {}
+    try { ratingsCard(); } catch (e) { console.error(e); }
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
@@ -1038,7 +1162,7 @@ async function load() {
 $('reload').onclick = load;
 const links = [...document.querySelectorAll('nav a')];
 const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => { const on = a.hash === '#' + e.target.id; a.classList.toggle('on', on); if (on) { const nv = a.parentNode; nv.scrollLeft = a.offsetLeft - nv.clientWidth / 2 + a.clientWidth / 2; } }); }), { rootMargin: '-40% 0px -55% 0px' });
-['g-summary', 'g-money', 'g-customers', 'g-ads', 'g-store', 'g-trends', 'g-people'].forEach((id) => spy.observe($(id)));
+['g-summary', 'g-money', 'g-customers', 'g-ads', 'g-store', 'g-trends', 'g-people', 'g-ratings'].forEach((id) => spy.observe($(id)));
 // ---- hide / show every card (David 10-16, A). Attaches to the common class .card, so cards added later get a button too.
 // State lives in localStorage under one key, per card id; the page works the same when storage is unavailable.
 (function () {
