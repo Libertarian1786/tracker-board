@@ -370,7 +370,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div class="gbody">
 <section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
-<p class="cap">Where our app shows up in App Store search, per term.</p>
+<p class="cap">Where our app shows up in App Store search, per term. Since 11/18: the App Store's own iPhone search order (like AppTweak), about 250 deep, ads not counted.</p>
 <table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
 <p class="note" id="ratings" style="margin-top:10px"></p>
 <p class="note" style="margin-top:6px;font-size:12px">Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p>
@@ -380,7 +380,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <h2>Rank over time</h2>
 <p class="cap">The same searches, every day since tracking began. Newest day first; scroll sideways for older days.</p>
 <div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not in the top 200. Change = first check to the latest; higher up is better.</p>
+<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not found. Change = first check to the latest; higher up is better. <b>* From 11/18 on</b>, ranks are the App Store's own iPhone search order (the same order AppTweak reads, about 250 deep; ads not counted). Before 11/18 they came from Apple's public search API, which ranks differently (top 200), so Change counts from 11/18 only.</p>
 </section>
 
 <section class="card" id="reviews">
@@ -946,15 +946,16 @@ function rankGroups() {
 function rankHistory(h) {
   // 2026-10-26 (David: not showing past 10/14 on the phone): newest day first, Change right after the term.
   const days = [...new Set(Object.values(h).flat().map((x) => x.day))].sort().reverse();
-  const head = '<tr><th>Term</th><th class="n">Change</th>' + days.map((d) => `<th class="n">${d.slice(5).replace('-', '/')}</th>`).join('') + '</tr>';
+  const MC = (last.rank_method_change || {}).day || '';  // 2026-11-18: rank source changed to the App Store's own search
+  const head = '<tr><th>Term</th><th class="n">Change</th>' + days.map((d) => `<th class="n"${d === MC ? ' title="' + esc((last.rank_method_change || {}).label || '') + '"' : ''}>${d.slice(5).replace('-', '/')}${d === MC ? '*' : ''}</th>`).join('') + '</tr>';
   const now = (t) => (h[t][h[t].length - 1] || {}).rank || 999;
   const G = rankGroups();
   const sorted = Object.keys(h).sort((a, b) => now(a) - now(b));
   const terms = G.order.flatMap((g) => { const ts = sorted.filter((t) => G.of(t) === g); return ts.length ? [{ group: g, n: ts.length, top: ts.filter((t) => now(t) < 999).length }, ...ts] : []; });
   const rowsH = terms.map((t) => {
-    if (typeof t === 'object') return `<tr class="rgh"><td colspan="${days.length + 2}">${esc(t.group)} <span class="meta">${t.top} of ${t.n} in the top 200</span></td></tr>`;
+    if (typeof t === 'object') return `<tr class="rgh"><td colspan="${days.length + 2}">${esc(t.group)} <span class="meta">${t.top} of ${t.n} found</span></td></tr>`;
     const by = Object.fromEntries(h[t].map((x) => [x.day, x.rank]));
-    const first = h[t].find((x) => x.rank), cur = h[t][h[t].length - 1];
+    const cur = h[t][h[t].length - 1], first = h[t].find((x) => x.rank && (!MC || cur.day < MC || x.day >= MC));
     let ch = '';
     if (first && cur && cur.rank && first.day !== cur.day) {
       const diff = first.rank - cur.rank;
@@ -1012,13 +1013,13 @@ async function load() {
       return rs.length ? [{ group: g, n: rs.length, top: rs.filter((r) => r.rank).length }, ...rs] : [];
     });
     $('ranks').tBodies[0].innerHTML = rkRows.map((r) => {
-      if (r.group) return `<tr class="rgh"><td colspan="4">${esc(r.group)} <span class="meta">${r.top} of ${r.n} in the top 200</span></td></tr>`;
+      if (r.group) return `<tr class="rgh"><td colspan="4">${esc(r.group)} <span class="meta">${r.top} of ${r.n} found</span></td></tr>`;
       let ch = '';
       if (r.rank && r.prev) { const diff = r.prev - r.rank; ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–'; }
       else if (r.rank && !r.prev && r.had_prev) ch = '<span class="up">new</span>';
       else if (!r.rank && r.prev) ch = '<span class="down">out</span>';
       const pp = ((d.term_popularity || {}).terms || {})[r.term];
-      return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not top 200'}</td><td class="n">${ch}</td><td class="n">${pp ? pp.popularity + ' of 5' : '–'}</td></tr>`;
+      return `<tr><td>${r.term}</td><td class="n">${r.rank ? '#' + r.rank : 'not found'}</td><td class="n">${ch}</td><td class="n">${pp ? pp.popularity + ' of 5' : '–'}</td></tr>`;
     }).join('');
     $('ratings').textContent = rk.rating_count !== undefined && rk.rating_count !== '' ? `Ratings: ${rk.rating_count} (average ${rk.rating_avg} stars)` : '';
     const ap = (d.apple_sales || {}).days || [];
