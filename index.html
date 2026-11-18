@@ -961,6 +961,7 @@ function rankHistory(h) {
       const diff = first.rank - cur.rank;
       ch = diff > 0 ? `<span class="up">▲${diff}</span>` : diff < 0 ? `<span class="down">▼${-diff}</span>` : '–';
     } else if (cur && cur.rank && !first) ch = '';
+    else if (cur && cur.rank && MC && first && first.day === cur.day && cur.day >= MC && h[t].some((x) => x.day < MC)) ch = '–';  // first day on the new rank source
     else if (cur && cur.rank && h[t].some((x) => x.rank === null && x.day < cur.day) && first && first.day === cur.day) ch = '<span class="up">new</span>';
     else if (first && cur && !cur.rank) ch = '<span class="down">out</span>';
     return `<tr><td>${esc(t)}</td><td class="n">${ch}</td>` + days.map((d) => `<td class="n">${d in by ? (by[d] ? '#' + by[d] : '–') : ''}</td>`).join('') + '</tr>';
