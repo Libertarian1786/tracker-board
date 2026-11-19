@@ -899,12 +899,22 @@ function trendsCard() {
 }
 
 // ---- ratings and reviews
+// 2026-11-19 owner: people next to taps ("8 rate taps from 5 people"). Exact = the page's anonymous phone ID (from Nov 19);
+// older events have no ID, so their people are estimated (same city + state within 30 minutes = one person) and say so.
+function rpPeople(x) {
+  if (!x || !x.n) return '';
+  const est = x.estimated ? (x.by_id ? ' (' + x.estimated + ' estimated)' : ' (estimated)') : '';
+  return ' from ' + x.people + (x.people === 1 ? ' person' : ' people') + est;
+}
+const RP_PEOPLE_NOTE = 'People: each phone is counted once by the page\'s anonymous random ID (from Nov 19 on); older events have no ID, so their people are estimated (events from the same city and state within 30 minutes = one person).';
 function ratePageSummary() {  // 2026-11-17 owner: /rate page stats in the top Summary
   const p = last.rate_page; if (!p) return;
-  $('sum_rpv').textContent = p.today_visits; $('sum_rpv_all').textContent = 'today · ' + p.visits + ' all time';
-  $('sum_rpi').textContent = p.today_install_taps; $('sum_rpi_all').textContent = 'today · ' + p.install_taps + ' all time';
-  $('sum_rpr').textContent = p.today_rate_taps; $('sum_rpr_all').textContent = 'today · ' + p.rate_taps + ' all time';
+  const P = p.people || {}, PT = p.people_today || {};
+  $('sum_rpv').textContent = p.today_visits; $('sum_rpv_all').textContent = 'today' + rpPeople(PT.visit) + ' · ' + p.visits + ' all time' + rpPeople(P.visit);
+  $('sum_rpi').textContent = p.today_install_taps; $('sum_rpi_all').textContent = 'today' + rpPeople(PT.install_tap) + ' · ' + p.install_taps + ' all time' + rpPeople(P.install_tap);
+  $('sum_rpr').textContent = p.today_rate_taps; $('sum_rpr_all').textContent = 'today' + rpPeople(PT.rate_tap) + ' · ' + p.rate_taps + ' all time' + rpPeople(P.rate_tap);
   $('sum_rp_where').textContent = (p.places && p.places.length ? '/rate page by place: ' + p.places.join(' · ') : '') + (p.last ? ' · last activity ' + p.last : '')
+    + (p.people ? ' · ' + RP_PEOPLE_NOTE : '')
     + (p.counter_visits != null ? ' · counts from the event log; page counter (undercounts) reads ' + p.counter_visits + ' visits, ' + p.counter_install_taps + ' install taps, ' + p.counter_rate_taps + ' rate taps' : '');
 }
 function reviewsCard() {
@@ -1074,9 +1084,12 @@ function ratingsCard() {
   const z = (n) => n ? n : '<span style="color:var(--mute)">0</span>';
   // rate page
   const P = R.rate_page || {}, T = P.totals_30d || {}, A = P.abacus_all_time || {};
-  $('rp_sum').innerHTML = `<div class="grid"><div><div class="k">${T.visit || 0}</div><div class="l">Visits (logged)</div></div><div><div class="k">${T.install_tap || 0}</div><div class="l">Install taps</div></div><div><div class="k">${T.rate_tap || 0}</div><div class="l">Rate-it taps</div></div></div>`;
-  $('rp_daytab').tBodies[0].innerHTML = (P.days || []).map((d) => `<tr><td>${md(d.day)}</td><td class="n">${z(d.visit)}</td><td class="n">${z(d.install_tap)}</td><td class="n">${z(d.rate_tap)}</td></tr>`).join('') || '<tr><td colspan="4">No visits logged yet</td></tr>';
-  $('rp_daynote').textContent = 'Days with any activity. Events logged since ' + (P.first_logged ? md(P.first_logged.slice(0, 10)) + ' ' + P.first_logged.slice(11) : '–') + ' Nashville, kept for good from Nov 18 on (before that the source kept only about 12 hours, so the all-time counter can be a little higher). Page counter, all time: ' + (A.visits || '–') + ' visits, ' + (A.install_taps || '–') + ' install taps, ' + (A.rate_taps === '0' || A.rate_taps === 0 ? '0 rate-it taps (the counter has never recorded one, though the event log has; the log is the one to trust)' : (A.rate_taps || '–') + ' rate-it taps') + '. Claude\'s own test visit is left out.';
+  const PP = P.people || {};
+  const pl = (x) => x && x.n ? `<div class="sub" style="font-size:11px;opacity:.75">${esc(rpPeople(x).trim())}</div>` : '';
+  $('rp_sum').innerHTML = `<div class="grid"><div><div class="k">${T.visit || 0}</div><div class="l">Visits (logged)${pl(PP.visit)}</div></div><div><div class="k">${T.install_tap || 0}</div><div class="l">Install taps${pl(PP.install_tap)}</div></div><div><div class="k">${T.rate_tap || 0}</div><div class="l">Rate-it taps${pl(PP.rate_tap)}</div></div></div>`;
+  const dp = (n, x) => n ? n + (x && x.n ? `<span class="sub">${x.people} ${x.people === 1 ? 'person' : 'people'}${x.estimated ? (x.by_id ? ', ' + x.estimated + ' est.' : ' est.') : ''}</span>` : '') : z(0);
+  $('rp_daytab').tBodies[0].innerHTML = (P.days || []).map((d) => { const q = d.people || {}; return `<tr><td>${md(d.day)}</td><td class="n">${dp(d.visit, q.visit)}</td><td class="n">${dp(d.install_tap, q.install_tap)}</td><td class="n">${dp(d.rate_tap, q.rate_tap)}</td></tr>`; }).join('') || '<tr><td colspan="4">No visits logged yet</td></tr>';
+  $('rp_daynote').textContent = 'Days with any activity. Events logged since ' + (P.first_logged ? md(P.first_logged.slice(0, 10)) + ' ' + P.first_logged.slice(11) : '–') + ' Nashville, kept for good from Nov 18 on (before that the source kept only about 12 hours, so the all-time counter can be a little higher). Page counter, all time: ' + (A.visits || '–') + ' visits, ' + (A.install_taps || '–') + ' install taps, ' + (A.rate_taps === '0' || A.rate_taps === 0 ? '0 rate-it taps (the counter has never recorded one, though the event log has; the log is the one to trust)' : (A.rate_taps || '–') + ' rate-it taps') + '. Claude\'s own test visits are left out. ' + (P.people ? RP_PEOPLE_NOTE + ' "est." = estimated.' : '');
   $('rp_statetab').tBodies[0].innerHTML = (P.by_state || []).map((s) => `<tr><td>${esc(s.state)}${s.cities.length ? '<span class="sub">' + esc(s.cities.join(', ')) + '</span>' : ''}</td><td class="n">${z(s.visit)}</td><td class="n">${z(s.install_tap)}</td><td class="n">${z(s.rate_tap)}</td></tr>`).join('') || '<tr><td colspan="4">None yet</td></tr>';
   $('rt_ratelist').tBodies[0].innerHTML = (P.events || []).map((x) => `<tr><td>${esc(x.when)}</td><td>${x.event === 'visit' ? EV.visit : '<b>' + esc(EV[x.event] || x.event) + '</b>'}</td><td>${esc(x.city || '–')}</td><td>${esc(x.state || 'Unknown')}${x.country ? ' (' + esc(x.country) + ')' : ''}</td></tr>`).join('') || '<tr><td colspan="4">None yet</td></tr>';
   $('rt_ratenote').textContent = 'Every visit and button tap, newest first, Nashville time. Install tap = the "Get the app" button; Rate-it tap = the button that opens the App Store review page. A tap does not prove the person rated; Apple does not say.';
