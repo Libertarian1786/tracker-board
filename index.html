@@ -133,6 +133,20 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 #rt_tl td:first-child,#rt_days td:first-child,#rt_instdays td:first-child,#rt_asklist td:first-child,#rt_ratelist td:first-child{white-space:nowrap}
 #rt_tl tr.hit td{background:rgba(245,158,11,.14)}
 #rt_tl .sub,#rt_asklist .sub,#rp_statetab .sub{display:block}
+/* 2026-11-19 reorg (owner approved): Today strip, one-line notes with a "more" toggle, long lists collapsed */
+.sline{margin:8px 0 0;font-size:13.5px;color:var(--ink)}.sline a{color:var(--accent)}
+#t_arv{color:var(--mute)}
+.strip .sub{font-size:11px;opacity:.8}
+@media (min-width:900px){.strip{grid-template-columns:repeat(6,1fr)}}
+details.nt{margin:8px 0 0;font-size:12px;color:var(--mute)}
+details.nt>summary{cursor:pointer;list-style:none}details.nt>summary::-webkit-details-marker{display:none}
+details.nt .mo{color:var(--accent);font-weight:600;white-space:nowrap}details.nt .mo::after{content:"more"}details.nt[open] .mo::after{content:"less"}
+details.nt .note,details.nt .rnote{font-size:12px;margin:4px 0 0}
+details.nt .rlim{margin:6px 0 0}
+details.lst{margin-top:8px}
+details.lst>summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--accent);padding:4px 0}
+details.lst[open]>summary{margin-bottom:4px}
+.nt1{color:var(--mute);font-size:12px;margin:6px 0 0}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
@@ -140,37 +154,33 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <main>
 <div class="arvban" id="arvban" role="status"></div>
 <header><h1>Tracker</h1><span class="upd" id="upd">Loading…</span></header>
-<p class="upd" style="margin:-4px 0 8px"><b>Times are Nashville time. Days are Apple Ads days (Alaska), so ad spend and installs line up.</b></p>
-<p class="upd" style="margin:-4px 0 8px"><a href="#" id="showall">Show all</a><span id="hidcount"></span> <span>· each section has a Hide button at its top right; hidden sections stay hidden after a refresh</span></p>
-<nav aria-label="Jump to a group"><a href="#g-summary" class="on">Summary</a><a href="#g-money">Money</a><a href="#g-customers">Customers</a><a href="#g-ads">Ads</a><a href="#g-store">Store</a><a href="#g-trends">Trends</a><a href="#g-people">People</a><a href="#g-ratings">Rating page</a></nav>
+<p class="upd" style="margin:-4px 0 8px">Nashville time · days are Apple Ads days (Alaska) · <a href="#" id="showall">Show all</a><span id="hidcount"></span></p>
+<nav aria-label="Jump to a group"><a href="#g-summary" class="on">Today</a><a href="#g-money">Money</a><a href="#g-funnel">Funnel</a><a href="#g-ads">Ads &amp; store</a><a href="#g-ratings">Ratings</a><a href="#g-review">Apple review</a></nav>
 <div class="cols">
+
+<!-- 2026-11-19 reorg (owner approved): one compact Today strip, then Money & customers, Funnel, Ads & store, Ratings, Apple review -->
 <div class="grp" id="g-summary">
-<h2 class="gh">Summary</h2>
-<p class="gcap">Today at a glance and where Apple review stands.</p>
-<div class="gbody">
-<section class="card" id="ads" data-title="Summary">
+<section class="card" id="ads" data-title="Today">
 <div class="seg" role="tablist"><button data-r="day" class="on">Today</button><button data-r="week">This week</button></div>
 <h2 id="rlabel">Today</h2>
 <p class="cap">Impressions, taps, installs, trials, purchases and ad cost for the period picked above.</p>
-<div class="grid">
-<div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
-<div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
-<div><div class="k" id="inst">–</div><div class="l">Installs (live)<div class="sub" id="inst_apple" style="font-size:11px;opacity:.75"></div></div></div>
+<div class="grid strip">
+<div><div class="k" id="inst">–</div><div class="l">Installs<div class="sub" id="inst_apple"></div></div></div>
 <div><div class="k" id="trials">–</div><div class="l">Trials</div></div>
 <div><div class="k" id="buys">–</div><div class="l">Purchases</div></div>
-<div><div class="k" id="spend">–</div><div class="l">Ad cost</div></div>
-<div><div class="k" id="cpt">–</div><div class="l">Per tap</div></div>
-<div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
-<div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
-<div><div class="k" id="sum_rcount">–</div><div class="l">App Store ratings (US)</div></div>
-<div><div class="k" id="sum_ravg">–</div><div class="l">Average stars</div></div>
-<div><div class="k" id="sum_rpv">–</div><div class="l">/rate page visits<div class="sub" id="sum_rpv_all" style="font-size:11px;opacity:.75"></div></div></div>
-<div><div class="k" id="sum_rpi">–</div><div class="l">/rate Install taps<div class="sub" id="sum_rpi_all" style="font-size:11px;opacity:.75"></div></div></div>
-<div><div class="k" id="sum_rpr">–</div><div class="l">/rate "Rate it" taps<div class="sub" id="sum_rpr_all" style="font-size:11px;opacity:.75"></div></div></div>
+<div><div class="k" id="t_in">–</div><div class="l">Money in<div class="sub" id="t_keep"></div></div></div>
+<div><div class="k" id="spend">–</div><div class="l">Ad spend<div class="sub">Apple Ads</div></div></div>
+<div><div class="k" id="t_pl">–</div><div class="l"><span id="t_pll">Profit / loss</span><div class="sub">you keep minus ad cost</div></div></div>
 </div>
-<p class="upd" id="sum_rp_where" style="margin:6px 0 0"></p>
+<p class="sline">App Store ratings (US): <b id="sum_rcount">–</b> · average <b id="sum_ravg">–</b> · <a href="#g-ratings">ratings</a></p>
+<p class="sline" id="t_arv">Apple review: –</p>
 </section>
+</div>
 
+<div class="grp" id="g-money">
+<h2 class="gh">Money &amp; customers</h2>
+<p class="gcap">Who pays, what is due, and money in vs out.</p>
+<div class="gbody">
 <section class="card" id="payers" data-title="Paying customers">
 <h2>Paying customers</h2>
 <p class="cap">Everyone who has paid real money, what each has paid so far, and whether their weekly plan is still running.</p>
@@ -180,47 +190,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div><div class="k" id="py_total">–</div><div class="l">Paid in total<div class="sub" id="py_sub" style="font-size:11px;opacity:.75"></div></div></div>
 </div>
 <div style="overflow-x:auto;margin-top:10px"><table id="pyt"><thead><tr><th>Customer</th><th>Plan</th><th class="n">Paid so far</th><th>Next</th></tr></thead><tbody></tbody></table></div>
-<p class="note" id="pynote" style="margin-top:8px;font-size:12px"></p>
-</section>
-
-<section class="card" id="arvbox" data-title="Apple review">
-<h2>Apple review</h2>
-<p class="cap">Where our app versions are in Apple's review, and what the reviewers did in the app.</p>
-<p class="st" id="arvstatus">Loading…</p>
-<div style="overflow-x:auto"><table id="arvv"><thead><tr><th>Version</th><th>App Store state</th><th>Since</th></tr></thead><tbody></tbody></table></div>
-<h3>Review submissions</h3>
-<div style="overflow-x:auto"><table id="arvs"><thead><tr><th>Submitted</th><th>State</th><th>Result</th></tr></thead><tbody></tbody></table></div>
-<h3>State changes seen</h3>
-<div id="arvc" class="note" style="font-size:13px"></div>
-<h3>Reviewer activity</h3>
-<div style="overflow-x:auto"><table id="arva"><thead><tr><th>Last opened</th><th>Version</th><th>What they did</th></tr></thead><tbody></tbody></table></div>
-<p class="note" id="arvnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-</div>
-</div>
-
-<div class="grp" id="g-money">
-<h2 class="gh">Money</h2>
-<p class="gcap">What comes in, what goes out, and what is coming due.</p>
-<div class="gbody">
-<section class="card" id="money">
-<h2 id="moneylabel">Money in vs money out</h2>
-<p class="cap">What the ads cost against what we keep after Apple's cut.</p>
-<div class="l" id="mwin1" style="margin-bottom:6px">Since the ads started</div>
-<div class="grid" id="mgrid_all"></div>
-<div class="l" id="mwin2" style="margin:14px 0 6px">Today</div>
-<div class="grid" id="mgrid_win"></div>
-<div class="ctitle">Running profit / loss since the ads started</div>
-<div class="cbox" style="height:150px"><canvas id="cumchart" role="img" aria-label="Running profit or loss since the ads started"></canvas></div>
-<div style="overflow-x:auto"><table id="mdays"><thead><tr><th>Day</th><th class="n">Cost</th><th class="n">Revenue</th><th class="n">Keep</th><th class="n">Net</th><th class="n">Running</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="mnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-
-<section class="card" id="apple">
-<h2>Apple sales report</h2>
-<p class="cap">Apple's own sales record, one day per row.</p>
-<div style="overflow-x:auto"><table id="asales"><thead><tr><th>Day</th><th class="n">New downloads</th><th>Paid units (price, you keep)</th></tr></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Apple's own real-money record, one day per row. Days are Apple's (Pacific time). Apple's file for a day appears the next day, so today is not here yet. A red flag means Apple's paid units differ from what RevenueCat shows for that day.</p>
+<details class="nt"><summary><span>Real App Store customers only; amounts are before Apple's cut.</span> <span class="mo"></span></summary><p class="note" id="pynote"></p></details>
 </section>
 
 <section class="card" id="bills">
@@ -230,8 +200,10 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div style="overflow-x:auto"><table id="bup"><tbody></tbody></table></div>
 <h3 class="subh">What happened to charges that came due (14 days)</h3>
 <p id="btally" class="note" style="margin:0 0 6px"></p>
+<details class="lst"><summary>Each charge</summary>
 <div style="overflow-x:auto"><table id="bhist"><tbody></tbody></table></div>
-<p class="note" id="bnote" style="margin-top:8px;font-size:12px"></p>
+</details>
+<details class="nt"><summary><span>Real subscriptions only; the result is read after each due date.</span> <span class="mo"></span></summary><p class="note" id="bnote"></p></details>
 </section>
 
 <section class="card" id="cancels">
@@ -240,7 +212,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <p id="cxsum" style="margin:0 0 8px;font-size:15px"></p>
 <table id="cxb"><thead><tr><th>Turned auto-renew off</th><th class="n">Trials</th></tr></thead><tbody></tbody></table>
 <p id="cxmed" style="margin:10px 0 0;font-size:14px"></p>
-<p class="note" id="cxnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>All real free trials; the time is when we first noticed the cancel.</span> <span class="mo"></span></summary><p class="note" id="cxnote"></p></details>
 </section>
 
 <section class="card" id="payfail">
@@ -251,50 +223,53 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <table id="pftr"><tbody></tbody></table>
 <h3 class="subh">Billing problems open now (RevenueCat)</h3>
 <div style="overflow-x:auto"><table id="pfstuck"><tbody></tbody></table></div>
-<details style="margin-top:10px"><summary class="subh" style="cursor:pointer">Apple's events, newest first</summary><div style="overflow-x:auto"><table id="pfev"><tbody></tbody></table></div></details>
-<p class="note" id="pfnote" style="margin-top:8px;font-size:12px"></p>
+<details class="lst"><summary>Apple's events, newest first</summary><div style="overflow-x:auto"><table id="pfev"><tbody></tbody></table></div></details>
+<details class="nt"><summary><span>From Apple's subscription report and RevenueCat.</span> <span class="mo"></span></summary><p class="note" id="pfnote"></p></details>
+</section>
+
+<section class="card" id="money">
+<h2 id="moneylabel">Money in vs money out</h2>
+<p class="cap">What the ads cost against what we keep after Apple's cut.</p>
+<div class="l" id="mwin1" style="margin-bottom:6px">Since the ads started</div>
+<div class="grid" id="mgrid_all"></div>
+<div class="l" id="mwin2" style="margin:14px 0 6px">Today</div>
+<div class="grid" id="mgrid_win"></div>
+<div class="ctitle">Running profit / loss since the ads started</div>
+<div class="cbox" style="height:150px"><canvas id="cumchart" role="img" aria-label="Running profit or loss since the ads started"></canvas></div>
+<details class="lst"><summary>Each day</summary>
+<div style="overflow-x:auto"><table id="mdays"><thead><tr><th>Day</th><th class="n">Cost</th><th class="n">Revenue</th><th class="n">Keep</th><th class="n">Net</th><th class="n">Running</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+</details>
+<details class="nt"><summary><span>Apple's figures where published, RevenueCat for the newest days.</span> <span class="mo"></span></summary><p class="note" id="mnote"></p></details>
+</section>
+
+<section class="card" id="apple">
+<h2>Apple sales report</h2>
+<p class="cap">Apple's own sales record, one day per row.</p>
+<details class="lst"><summary>Each day</summary>
+<div style="overflow-x:auto"><table id="asales"><thead><tr><th>Day</th><th class="n">New downloads</th><th>Paid units (price, you keep)</th></tr></thead><tbody></tbody></table></div>
+</details>
+<details class="nt"><summary><span>Apple's own record; each day appears the next day.</span> <span class="mo"></span></summary><p class="note">Apple's own real-money record, one day per row. Days are Apple's (Pacific time). Apple's file for a day appears the next day, so today is not here yet. A red flag means Apple's paid units differ from what RevenueCat shows for that day.</p></details>
 </section>
 </div>
 </div>
 
-<div class="grp" id="g-customers">
-<h2 class="gh">Customers and funnel</h2>
-<p class="gcap">Who showed up, how far they got, and what they did.</p>
+<div class="grp" id="g-funnel">
+<h2 class="gh">Funnel</h2>
+<p class="gcap">How far new people got, and what they did.</p>
 <div class="gbody">
-<section class="card" id="splitcard" data-title="Ads vs organic">
-<h2>Ads vs organic</h2>
-<p class="cap">Where people came from: paid ads, or finding the app on their own.</p>
-<table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Organic</th><th class="n">Total</th></tr></thead><tbody>
-<tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
-<tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
-<tr><td>Purchases</td><td class="n" id="s_p_a">–</td><td class="n" id="s_p_o">–</td><td class="n" id="s_p_t">–</td></tr>
-<tr><td>Tapped buy, didn't finish</td><td class="n" id="s_b_a">–</td><td class="n" id="s_b_o">–</td><td class="n" id="s_b_t">–</td></tr>
-<tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
-</tbody></table>
-<p class="note" style="margin-top:8px;font-size:12px">Counted from RevenueCat, App Store installs only. Organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count above.</p>
-<p class="note" style="margin-top:8px;font-size:12px">"Tapped buy, didn't finish" = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6) but has no trial and no purchase. One definition, used by every section. On one-tap cards the result is recorded (cancelled / pending / failed); on RevenueCat paywalls the app does not yet record what happened after the tap (needs an app build), so those rows show the order of what the phone sent. Price shown is inferred from the screen they reached.</p>
-<p class="note" id="rcnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-
-<section class="card" id="users">
-<h2 id="ulabel">Users</h2>
-<p class="cap">Everyone who opened the app in the period, by type.</p>
-<div class="grid" id="ugrid"></div>
-</section>
-
 <section class="card" id="funnel">
 <h2 id="funlabel">Funnel</h2>
 <p class="cap">How far people get: setup, offer screens, paywall, trial.</p>
 <p class="note" id="funextra" style="font-weight:600"></p>
 <div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
-<p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>People who installed in the period, step by step; ↳ rows are the two ways to buy.</span> <span class="mo"></span></summary><p class="note" id="funnote"></p></details>
 </section>
 
 <section class="card" id="insightcard" data-title="What people did">
 <h2 id="inslabel">What people did</h2>
 <p class="cap">Data the app already sends, summed for new installs in the period.</p>
 <div id="insbody"></div>
-<p class="note" id="insnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>New installs in the period; per-person detail is in Each person.</span> <span class="mo"></span></summary><p class="note" id="insnote"></p></details>
 </section>
 
 <section class="card" id="leftcard" data-title="Where people without a trial left">
@@ -307,38 +282,75 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <h2 id="convlabel">Converted on</h2>
 <p class="cap">Which purchase screen each trial or sale came from.</p>
 <div style="overflow-x:auto"><table id="conv"><thead><tr><th>Purchase screen</th><th class="n">Trials</th><th class="n">Weekly</th><th class="n">Pass</th><th class="n">Revenue</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="convnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>The screen each trial or sale came from (wins, not rates).</span> <span class="mo"></span></summary><p class="note" id="convnote"></p></details>
 </section>
 
 <section class="card" id="vercard">
 <h2 id="verlabel">By version</h2>
 <p class="cap">Installs split by the app version people set up on.</p>
-<table id="vers"><thead><tr><th>Set up on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
-<p class="note" id="vernote" style="margin-top:8px;font-size:12px"></p>
+<table id="vers"><thead><tr><th>Set up on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Likely org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<details class="nt"><summary><span>Grouped by the app version people set up on.</span> <span class="mo"></span></summary><p class="note" id="vernote"></p></details>
 <details id="exclnote" style="margin-top:8px;font-size:12px;display:none"><summary id="exclsum" style="cursor:pointer;color:var(--mute)"></summary><div id="excllist" class="note" style="margin-top:6px"></div></details>
 </section>
 
 <section class="card" id="agecard">
 <h2 id="agelabel">Ages</h2>
 <p class="cap">Installs, trials and paid, by the age people chose.</p>
-<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
-<p class="note" id="agenote" style="margin-top:8px;font-size:12px"></p>
+<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Likely org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<details class="nt"><summary><span>By the age people picked in setup.</span> <span class="mo"></span></summary><p class="note" id="agenote"></p></details>
 <h3 id="abalabel" class="subh">Ads by age</h3>
 <div style="overflow-x:auto"><table id="aba"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="abanote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>Each Apple Ads search term, by the age people picked.</span> <span class="mo"></span></summary><p class="note" id="abanote"></p></details>
+</section>
+
+<section class="card" id="splitcard" data-title="Ads vs likely organic">
+<h2>Ads vs likely organic</h2>
+<p class="cap">Where people came from: paid ads, or finding the app on their own.</p>
+<table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Likely organic</th><th class="n">Total</th></tr></thead><tbody>
+<tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
+<tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
+<tr><td>Purchases</td><td class="n" id="s_p_a">–</td><td class="n" id="s_p_o">–</td><td class="n" id="s_p_t">–</td></tr>
+<tr><td>Tapped buy, didn't finish</td><td class="n" id="s_b_a">–</td><td class="n" id="s_b_o">–</td><td class="n" id="s_b_t">–</td></tr>
+<tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
+</tbody></table>
+<p class="note" id="rcnote"></p>
+<details class="nt"><summary><span>From RevenueCat; likely organic = no Apple Ads link found.</span> <span class="mo"></span></summary><p class="note">Counted from RevenueCat, App Store installs only. Likely organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count.</p><p class="note">"Tapped buy, didn't finish" = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6) but has no trial and no purchase. One definition, used by every section. On one-tap cards the result is recorded (cancelled / pending / failed); on RevenueCat paywalls the app does not yet record what happened after the tap (needs an app build), so those rows show the order of what the phone sent. Price shown is inferred from the screen they reached.</p></details>
+</section>
+
+<section class="card" id="users">
+<h2 id="ulabel">Users</h2>
+<p class="cap">Everyone who opened the app in the period, by type.</p>
+<div class="grid" id="ugrid"></div>
+</section>
+
+<section class="card" id="peoplecard" data-title="Each person">
+<h2>Each person (newest activity first)</h2>
+<p class="cap">One line per person; tags show where they got to, plus plan and app version.</p>
+<details class="lst"><summary id="people_sum">Show the list</summary>
+<div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Likely organic</button></div>
+<div id="people"></div>
+</details>
+<details class="nt"><summary><span>App Store installs only; our own test installs are left out.</span> <span class="mo"></span></summary><p class="note" id="rc"></p></details>
 </section>
 </div>
 </div>
 
 <div class="grp" id="g-ads">
-<h2 class="gh">Ads</h2>
-<p class="gcap">Apple Ads spend and results.</p>
+<h2 class="gh">Ads &amp; store</h2>
+<p class="gcap">Apple Ads spend and results, and where the app ranks.</p>
 <div class="gbody">
 <section class="card" id="campcard" data-title="By campaign">
 <h2>By campaign</h2>
 <p class="cap">Each Apple Ads campaign and placement, for the period picked in Summary.</p>
+<div class="grid" style="margin-bottom:10px">
+<div><div class="k" id="imp">–</div><div class="l">Impressions</div></div>
+<div><div class="k" id="taps">–</div><div class="l">Taps</div></div>
+<div><div class="k" id="cpt">–</div><div class="l">Per tap</div></div>
+<div><div class="k" id="cpi">–</div><div class="l">Per install</div></div>
+<div><div class="k" id="cpb">–</div><div class="l">Per purchase</div></div>
+</div>
 <div style="overflow-x:auto"><table id="camps"><thead><tr><th>Campaign</th><th class="n">Spent</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Installs</th><th class="n">Per inst.</th></tr></thead><tbody><tr><td colspan="6">No data yet</td></tr></tbody><tfoot></tfoot></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Every campaign in the Apple Ads account is counted in the numbers above; this splits them by campaign and placement. Follows the Today / This week switch. Paused campaigns with no activity in the period are hidden.</p>
+<details class="nt"><summary><span>Every Apple Ads campaign; paused ones with no activity are hidden.</span> <span class="mo"></span></summary><p class="note">Every campaign in the Apple Ads account is counted in the numbers above; this splits them by campaign and placement. Follows the Today / This week switch. Paused campaigns with no activity in the period are hidden.</p></details>
 </section>
 
 <section class="card">
@@ -359,58 +371,37 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <h2 id="tsdlabel">Search terms to dollars</h2>
 <p class="cap">Each search term: what ads spent on it and what people did afterwards (Apple Ads numbers plus RevenueCat people).</p>
 <div style="overflow-x:auto"><table id="tsd"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
-<p class="note" id="tsdnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>Apple Ads spend next to what those people did (RevenueCat).</span> <span class="mo"></span></summary><p class="note" id="tsdnote"></p></details>
 <div id="discbox" style="margin-top:14px" hidden>
 <h3 class="subh">Searches Apple matched</h3>
 <div style="overflow-x:auto"><table id="disct"><thead><tr><th>Search</th><th class="n">Impr.</th><th class="n">Taps</th><th class="n">Inst.</th><th class="n">Spent</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
-<p class="note" id="discnote" style="margin-top:8px;font-size:12px"></p>
+<details class="nt"><summary><span>Real searches that triggered the Discovery ad group.</span> <span class="mo"></span></summary><p class="note" id="discnote"></p></details>
 </div>
-<details id="kwd" style="margin-top:12px"><summary id="tlabel" class="subh" style="cursor:pointer">Per search term</summary>
+<details id="kwd" class="lst"><summary id="tlabel">Per search term</summary>
 <div style="overflow-x:auto"><table id="kw"><thead><tr><th>Term</th><th class="n">Taps</th><th class="n">Per tap</th><th class="n">Inst.</th><th class="n">Per inst.</th></tr></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Follows the Today / This week switch. Grey rows are paused terms.</p>
+<p class="nt1">Grey rows are paused terms.</p>
 </details>
 </section>
-</div>
-</div>
 
-<div class="grp" id="g-store">
-<h2 class="gh">Store</h2>
-<p class="gcap">How the app looks and ranks in the App Store.</p>
-<div class="gbody">
 <section class="card" id="rank">
 <h2>Search rank <span id="rankat"></span></h2>
 <p class="cap">Where our app shows up in App Store search, per term. Since 11/18: the App Store's own iPhone search order (like AppTweak), about 250 deep, ads not counted.</p>
 <table id="ranks"><thead><tr><th>Search term</th><th class="n">Rank</th><th class="n">Change</th><th class="n">Popularity</th></tr></thead><tbody></tbody></table>
-<p class="note" id="ratings" style="margin-top:10px"></p>
-<p class="note" style="margin-top:6px;font-size:12px">Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p>
+<details class="nt"><summary><span>App Store iPhone search order; popularity is Apple's 1 to 5 score.</span> <span class="mo"></span></summary><p class="note">Since 11/18: the App Store's own iPhone search order (like AppTweak), about 250 deep, ads not counted. Popularity is Apple's own 1 to 5 search score (Apple Ads), checked daily. Apple only gives it for terms our ads got impressions on, so "–" means no score yet.</p><p class="note" id="ratings"></p></details>
 </section>
 
 <section class="card" id="climb">
 <h2>Rank over time</h2>
 <p class="cap">The same searches, every day since tracking began. Newest day first; scroll sideways for older days.</p>
 <div style="overflow-x:auto"><table id="hist"><thead></thead><tbody></tbody></table></div>
-<p class="note" style="margin-top:8px;font-size:12px">Last check of each day. "–" = not found. Change = first check to the latest; higher up is better. <b>* From 11/18 on</b>, ranks are the App Store's own iPhone search order (the same order AppTweak reads, about 250 deep; ads not counted). Before 11/18 they came from Apple's public search API, which ranks differently (top 200), so Change counts from 11/18 only.</p>
+<details class="nt"><summary><span>Newest day first; scroll sideways. * = new rank source from 11/18.</span> <span class="mo"></span></summary><p class="note">Last check of each day. "–" = not found. Change = first check to the latest; higher up is better. <b>* From 11/18 on</b>, ranks are the App Store's own iPhone search order (the same order AppTweak reads, about 250 deep; ads not counted). Before 11/18 they came from Apple's public search API, which ranks differently (top 200), so Change counts from 11/18 only.</p></details>
 </section>
 
-<section class="card" id="reviews">
-<h2>Ratings and reviews</h2>
-<p class="cap">Star ratings and written reviews from the App Store.</p>
-<div id="rvhead"></div>
-<div id="rvlist"></div>
-<p class="note" id="rvnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-</div>
-</div>
-
-<div class="grp" id="g-trends">
-<h2 class="gh">Trends</h2>
-<p class="gcap">Changes over time, with what we changed.</p>
-<div class="gbody">
 <section class="card" id="trends">
 <h2>Trends, with what we changed</h2>
 <p class="cap">Daily lines, with markers for the changes we made.</p>
-<div class="ctitle" style="margin-top:0">Installs per day: ads vs organic</div>
-<div class="cbox"><canvas id="tr_inst" role="img" aria-label="Installs per day, ads and organic"></canvas></div>
+<div class="ctitle" style="margin-top:0">Installs per day: ads vs likely organic</div>
+<div class="cbox"><canvas id="tr_inst" role="img" aria-label="Installs per day, ads and likely organic"></canvas></div>
 <div class="grades" id="gr_inst"></div>
 <div class="ctitle">Cost per ad install</div>
 <div class="cbox"><canvas id="tr_cpi" role="img" aria-label="Cost per ad install per day"></canvas></div>
@@ -418,90 +409,136 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <div class="ctitle">Trials and paid charges per day</div>
 <div class="cbox"><canvas id="tr_conv" role="img" aria-label="Trials and paid charges per day"></canvas></div>
 <div class="grades" id="gr_conv"></div>
-<div class="ctitle">What the dashed vertical lines are (Nashville time)</div>
+<details class="lst"><summary>What the dashed vertical lines are (Nashville time)</summary>
 <div id="mklist"></div>
-<p class="note" id="trnote" style="margin-top:8px;font-size:12px"></p>
-</section>
-</div>
-</div>
-
-<div class="grp" id="g-people">
-<h2 class="gh">People</h2>
-<p class="gcap">The long detail list, one line per person.</p>
-<div class="gbody">
-<section class="card" id="peoplecard" data-title="Each person">
-<h2>Each person (newest activity first)</h2>
-<p class="cap">One line per person; tags show where they got to, plus plan and app version.</p>
-<div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Organic</button></div>
-<div id="people"></div>
-<p class="note" id="rc" style="font-size:12px;margin-top:8px"></p>
+</details>
+<details class="nt"><summary><span>Finished days only; thick dashed line = 7-day average.</span> <span class="mo"></span></summary><p class="note" id="trnote"></p></details>
 </section>
 </div>
 </div>
 
 <!-- 2026-11-18 (David: "a section with the full tracking of the rating page such as when and where the people installing and reviewing are") -->
 <div class="grp" id="g-ratings">
-<h2 class="gh">Rating page (drivedrill.app/rate)</h2>
-<p class="gcap">Full history (nothing rolls off), Nashville time. Visits and taps on the rate page, when and where; then App Store ratings and in-app asks to line them up against.</p>
+<h2 class="gh">Ratings</h2>
+<p class="gcap">Stars, reviews, the /rate page and in-app asks. Full history, Nashville time.</p>
 <div class="gbody">
+<section class="card" id="reviews">
+<h2>Ratings and reviews</h2>
+<p class="cap">Star ratings and written reviews from the App Store.</p>
+<div id="rvhead"></div>
+<div id="rvlist"></div>
+<details class="nt"><summary><span>Apple's US listing and App Store Connect; NEW = last 3 days.</span> <span class="mo"></span></summary><p class="note" id="rvnote"></p></details>
+</section>
+
+<section class="card" id="rt_reviews" data-title="Written reviews">
+<h2>Written reviews (every one)</h2>
+<details class="lst"><summary>Show every review, with storefront</summary>
+<div id="rt_rvlist"></div>
+</details>
+<details class="nt"><summary><span>Every written review from App Store Connect.</span> <span class="mo"></span></summary><p class="rnote" id="rt_rvnote"></p></details>
+</section>
+
+<section class="card" id="rp_top" data-title="Rate page (drivedrill.app/rate)">
+<h2>Rate page (drivedrill.app/rate)</h2>
+<div class="grid">
+<div><div class="k" id="sum_rpv">–</div><div class="l">Visits today<div class="sub" id="sum_rpv_all" style="font-size:11px;opacity:.75"></div></div></div>
+<div><div class="k" id="sum_rpi">–</div><div class="l">Install taps today<div class="sub" id="sum_rpi_all" style="font-size:11px;opacity:.75"></div></div></div>
+<div><div class="k" id="sum_rpr">–</div><div class="l">"Rate it" taps today<div class="sub" id="sum_rpr_all" style="font-size:11px;opacity:.75"></div></div></div>
+</div>
+<details class="nt"><summary><span>Where visitors are, last activity, and the page's own counter.</span> <span class="mo"></span></summary><p class="note" id="sum_rp_where"></p></details>
+</section>
+
 <section class="card" id="rp_days" data-title="Rate page by day">
 <h2>Rate page by day</h2>
 <div id="rp_sum"></div>
+<details class="lst"><summary>Each day</summary>
 <table id="rp_daytab"><thead><tr><th>Day</th><th class="n">Visits</th><th class="n">Install taps</th><th class="n">Rate-it taps</th></tr></thead><tbody></tbody></table>
-<p class="rnote" id="rp_daynote"></p>
+</details>
+<details class="nt"><summary><span>Days with activity; full history kept from Nov 18.</span> <span class="mo"></span></summary><p class="rnote" id="rp_daynote"></p></details>
 </section>
+
 <section class="card" id="rp_states" data-title="Rate page by state">
 <h2>Rate page by state</h2>
 <table id="rp_statetab"><thead><tr><th>State</th><th class="n">Visits</th><th class="n">Install taps</th><th class="n">Rate-it taps</th></tr></thead><tbody></tbody></table>
-<p class="rnote">Place = the visitor's approximate city and state from their internet connection, looked up by the page itself; no IP or ID is kept. "Unknown" = the lookup gave nothing (often a VPN or private relay).</p>
+<details class="nt"><summary><span>Approximate place from the visitor's connection; no IP is kept.</span> <span class="mo"></span></summary><p class="rnote">Place = the visitor's approximate city and state from their internet connection, looked up by the page itself; no IP or ID is kept. "Unknown" = the lookup gave nothing (often a VPN or private relay).</p></details>
 </section>
+
 <section class="card" id="rt_rate" data-title="Rate page, each event">
 <h2>Rate page, each event</h2>
+<details class="lst"><summary>Show every visit and tap</summary>
 <div style="overflow-x:auto"><table id="rt_ratelist"><thead><tr><th>When</th><th>What</th><th>City</th><th>State</th></tr></thead><tbody></tbody></table></div>
-<p class="rnote" id="rt_ratenote"></p>
+</details>
+<details class="nt"><summary><span>Newest first; a tap does not prove the person rated.</span> <span class="mo"></span></summary><p class="rnote" id="rt_ratenote"></p></details>
 </section>
-</div>
-<h3 class="gh" style="font-size:17px;margin-top:22px">App Store ratings, to line up against</h3>
-<div class="rlim" id="rt_lim"></div>
-<div class="gbody">
-<section class="card" id="rt_timeline" data-title="Taps, asks, then ratings">
-<h2>Rate page taps, asks, then new ratings</h2>
-<div style="overflow-x:auto"><table id="rt_tl"><thead><tr><th>Day</th><th class="n">Rate page taps</th><th class="n">In-app asks</th><th class="n">Write-review taps</th><th class="n">New ratings</th><th class="n">Reviews</th><th class="n">Installs</th></tr></thead><tbody></tbody></table></div>
-<p class="rnote" id="rt_tlnote"></p>
-</section>
-<section class="card" id="rt_over" data-title="Ratings over time">
-<h2>Ratings over time</h2>
-<div id="rt_now"></div>
-<div style="overflow-x:auto"><table id="rt_days"><thead><tr><th>Day</th><th class="n">Total</th><th class="n">New</th><th class="n">Average</th></tr></thead><tbody></tbody></table></div>
-<p class="rnote" id="rt_overnote"></p>
-</section>
-<section class="card" id="rt_reviews" data-title="Written reviews">
-<h2>Written reviews (every one)</h2>
-<div id="rt_rvlist"></div>
-<p class="rnote" id="rt_rvnote"></p>
-</section>
-<section class="card" id="rt_where" data-title="Where ratings come from">
-<h2>Where ratings come from</h2>
-<table id="rt_cc"><thead><tr><th>Store</th><th class="n">Ratings</th><th class="n">Average</th><th class="n">This version</th></tr></thead><tbody></tbody></table>
-<p class="rnote" id="rt_ccnote"></p>
-</section>
-<section class="card" id="rt_inst" data-title="Installs by day and country">
-<h2>Installs by day and country</h2>
-<div id="rt_instsum"></div>
-<div style="overflow-x:auto"><table id="rt_instdays"><thead><tr><th>Apple day</th><th class="n">First-time</th><th class="n">Re-downloads</th><th>Countries</th></tr></thead><tbody></tbody></table></div>
-<p class="rnote" id="rt_instnote"></p>
-</section>
+
 <section class="card" id="rt_asks" data-title="In-app rating asks">
 <h2>In-app rating asks and Write-a-review taps</h2>
 <div id="rt_asksum"></div>
+<details class="lst"><summary>Each ask and tap</summary>
 <div style="overflow-x:auto"><table id="rt_asklist"><thead><tr><th>Day</th><th>What</th><th>Version</th><th>State</th><th>Person</th></tr></thead><tbody></tbody></table></div>
-<p class="rnote" id="rt_asknote"></p>
+</details>
+<details class="nt"><summary><span>The last time each person was asked, from what the app sends.</span> <span class="mo"></span></summary><p class="rnote" id="rt_asknote"></p></details>
+</section>
+
+<section class="card" id="rt_over" data-title="Ratings over time">
+<h2>Ratings over time</h2>
+<div id="rt_now"></div>
+<details class="lst"><summary>Each day</summary>
+<div style="overflow-x:auto"><table id="rt_days"><thead><tr><th>Day</th><th class="n">Total</th><th class="n">New</th><th class="n">Average</th></tr></thead><tbody></tbody></table></div>
+</details>
+<details class="nt"><summary><span>Highest count seen each day on the US listing.</span> <span class="mo"></span></summary><p class="rnote" id="rt_overnote"></p></details>
+</section>
+
+<section class="card" id="rt_timeline" data-title="Taps, asks, then ratings">
+<h2>Rate page taps, asks, then new ratings</h2>
+<details class="lst"><summary>Each day</summary>
+<div style="overflow-x:auto"><table id="rt_tl"><thead><tr><th>Day</th><th class="n">Rate page taps</th><th class="n">In-app asks</th><th class="n">Write-review taps</th><th class="n">New ratings</th><th class="n">Reviews</th><th class="n">Installs</th></tr></thead><tbody></tbody></table></div>
+</details>
+<details class="nt"><summary><span>Days with any activity; highlighted = rating count went up.</span> <span class="mo"></span></summary><p class="rnote" id="rt_tlnote"></p></details>
+</section>
+
+<section class="card" id="rt_where" data-title="Where ratings come from">
+<h2>Where ratings come from</h2>
+<table id="rt_cc"><thead><tr><th>Store</th><th class="n">Ratings</th><th class="n">Average</th><th class="n">This version</th></tr></thead><tbody></tbody></table>
+<details class="nt"><summary><span>Sold in the US store only, so every rating is a US rating.</span> <span class="mo"></span></summary><p class="rnote" id="rt_ccnote"></p></details>
+</section>
+
+<section class="card" id="rt_inst" data-title="Installs by day and country">
+<h2>Installs by day and country</h2>
+<div id="rt_instsum"></div>
+<details class="lst"><summary>Each day</summary>
+<div style="overflow-x:auto"><table id="rt_instdays"><thead><tr><th>Apple day</th><th class="n">First-time</th><th class="n">Re-downloads</th><th>Countries</th></tr></thead><tbody></tbody></table></div>
+</details>
+<details class="nt"><summary><span>Apple's download report, a day or two behind.</span> <span class="mo"></span></summary><p class="rnote" id="rt_instnote"></p></details>
+</section>
+</div>
+<details class="nt" style="margin:0 0 12px"><summary><span>What cannot be known about ratings.</span> <span class="mo"></span></summary><div class="rlim" id="rt_lim"></div></details>
+</div>
+
+<div class="grp" id="g-review">
+<h2 class="gh">Apple review</h2>
+<p class="gcap">Where each version stands with Apple.</p>
+<div class="gbody">
+<section class="card" id="arvbox" data-title="Apple review">
+<h2>Apple review</h2>
+<p class="cap">Where our app versions are in Apple's review, and what the reviewers did in the app.</p>
+<p class="st" id="arvstatus">Loading…</p>
+<div style="overflow-x:auto"><table id="arvv"><thead><tr><th>Version</th><th>App Store state</th><th>Since</th></tr></thead><tbody></tbody></table></div>
+<h3>Review submissions</h3>
+<div style="overflow-x:auto"><table id="arvs"><thead><tr><th>Submitted</th><th>State</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+<details class="lst"><summary>State changes seen</summary>
+<div id="arvc" class="note" style="font-size:13px"></div>
+</details>
+<details class="lst"><summary>Reviewer activity</summary>
+<div style="overflow-x:auto"><table id="arva"><thead><tr><th>Last opened</th><th>Version</th><th>What they did</th></tr></thead><tbody></tbody></table></div>
+</details>
+<details class="nt"><summary><span>Checked about every 5 minutes; reviewer devices are left out of other counts.</span> <span class="mo"></span></summary><p class="note" id="arvnote"></p></details>
 </section>
 </div>
 </div>
 </div>
 
-<p class="upd" style="text-align:center">Refreshes every 2 minutes · <button id="reload">Refresh now</button></p>
+<p class="upd" style="text-align:center">Refreshes every 2 minutes · <button id="reload">Refresh now</button> · each section has a Hide button; hidden sections stay hidden</p>
 </main>
 <script>
 // Data lives on the repo's "data" branch so updates never rebuild this page.
@@ -541,7 +578,7 @@ function summary() {
   const a = range === 'day' ? (d.ads_today || {}) : days.reduce((t, r) => ({ impressions: t.impressions + r.impressions, taps: t.taps + r.taps, installs: t.installs + r.installs, spend: t.spend + r.spend }), { impressions: 0, taps: 0, installs: 0, spend: 0 });
   const rc = (d.rc_totals || {})[range] || {};
   $('rlabel').textContent = range === 'day' ? 'Today' + (a.day ? ' (' + a.day + ')' : '') : 'Last 7 days' + (days.length ? ' (' + days[days.length - 1].day.slice(5) + ' to ' + days[0].day.slice(5) + ')' : '');
-  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = rc.new_users ?? a.installs ?? '–'; $('inst_apple').textContent = (rc.new_users != null ? (rc.ad_users ?? 0) + ' ads · ' + (rc.organic_users ?? 0) + ' organic · ' : '') + 'Apple ads: ' + (a.installs ?? '–') + ' (~3 h behind)';
+  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('inst').textContent = rc.new_users ?? a.installs ?? '–'; $('inst_apple').textContent = (rc.new_users != null ? (rc.ad_users ?? 0) + ' ads · ' + (rc.organic_users ?? 0) + ' likely organic · ' : '') + 'Apple ads: ' + (a.installs ?? '–') + ' (~3 h behind)';
   $('trials').textContent = rc.trials ?? '–'; $('buys').textContent = rc.purchases ?? '–';
   $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
   $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
@@ -578,7 +615,7 @@ function agesTable() {
   const tp = { w: sum('paid_weekly'), m: sum('paid_monthly'), p: sum('paid_pass'), o: sum('paid_other') };
   const tsub = [tp.w && tp.w + ' wk', tp.m && tp.m + ' mo', tp.p && tp.p + ' pass', tp.o && tp.o + ' other'].filter(Boolean).join(' · ');
   $('ages').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${all}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}${tsub ? `<div class="sub" style="font-weight:400">${esc(tsub)}</div>` : ''}</td><td class="n">${all ? '100%' : '–'}</td></tr>`;
-  $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Ads and Organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
+  $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Ads and Likely organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
 }
 function versionsTable() {
   try {
@@ -594,7 +631,7 @@ function versionsTable() {
   const sum = (k) => rows.reduce((t, r) => t + (r[k] || 0), 0);
   $('vers').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${r.version === 'none' ? 'Not recorded' : 'v' + esc(r.version)}</td><td class="n">${r.installs}</td><td class="n">${r.ads}</td><td class="n">${r.organic}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td><td class="n">${r.tapped_buy}</td></tr>`).join('');
   $('vers').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sum('installs')}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}</td><td class="n">${sum('tapped_buy')}</td></tr>`;
-  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person. The app only reports its version during setup, so this is the version they SET UP on, not necessarily the one they use now (a row shows RevenueCat\'s own "last seen" version beside it). People first seen before we started recording this have their oldest known version, which can be later than the one they set up on (marked with ≈ on their row). The 6 people with no setup version show only RevenueCat\'s version. Counted like the Ages table: Installs, Ads and Organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6), no trial, no purchase. Apple review test devices stay left out, but RevenueCat\'s own dashboard still counts them.';
+  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person. The app only reports its version during setup, so this is the version they SET UP on, not necessarily the one they use now (a row shows RevenueCat\'s own "last seen" version beside it). People first seen before we started recording this have their oldest known version, which can be later than the one they set up on (marked with ≈ on their row). The 6 people with no setup version show only RevenueCat\'s version. Counted like the Ages table: Installs, Ads and Likely organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6), no trial, no purchase. Apple review test devices stay left out, but RevenueCat\'s own dashboard still counts them.';
 }
 function adsByAge() {
   const d = ((last.rc_ads_by_age || {})[range]) || null;
@@ -607,9 +644,9 @@ function adsByAge() {
   const pc = (u, n) => n ? Math.round(u / n * 100) + '%' : '–';
   const cell = (n) => n ? n : '<span style="color:var(--mute)">·</span>';
   T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Installs</th>' + cols.map((g) => `<th class="n">${esc(g.label)}</th>`).join('') + '<th class="n">Under-18 %</th><th class="n">Trials</th><th class="n">Paid</th></tr>';
-  T.tBodies[0].innerHTML = d.rows.map((r) => `<tr><td>${esc(r.term)}</td><td class="n">${r.installs}</td>` + cols.map((g) => `<td class="n">${cell(r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(r.under18, r.installs)}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td></tr>`).join('');
+  T.tBodies[0].innerHTML = d.rows.map((r) => `<tr><td>${esc(lo(r.term))}</td><td class="n">${r.installs}</td>` + cols.map((g) => `<td class="n">${cell(r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(r.under18, r.installs)}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td></tr>`).join('');
   T.tFoot.innerHTML = '<tr><td>Total</td><td class="n">' + inst + '</td>' + cols.map((g) => `<td class="n">${sum((r) => r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(u18, inst)}</td><td class="n">${sum((r) => r.trials)}</td><td class="n">${sum((r) => r.paid)}</td></tr>`;
-  $('abanote').textContent = 'Follows the Today / This week switch. Rolling 7-day window (Alaska days, same as Apple Ads), App Store installs only. Ages are what people chose in setup. Search term = Apple Ads keyword from RevenueCat attribution; Organic = no ad attribution. Installs = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid are counted as in the Ages table above (they can include people who installed earlier, so a row can show trials with 0 installs). Age columns that are empty for every row are hidden.';
+  $('abanote').textContent = 'Follows the Today / This week switch. Rolling 7-day window (Alaska days, same as Apple Ads), App Store installs only. Ages are what people chose in setup. Search term = Apple Ads keyword from RevenueCat attribution; Likely organic = no ad attribution. Installs = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid are counted as in the Ages table above (they can include people who installed earlier, so a row can show trials with 0 installs). Age columns that are empty for every row are hidden.';
 }
 // ------------------------------------------------------------------ 2026-10-16 additions
 const sgn = (v) => v == null || !isFinite(v) ? '–' : (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2);
@@ -644,6 +681,9 @@ function moneyCard() {
   $('mwin1').textContent = 'Since the ads started (' + dd(days[0].day) + ' to ' + dd(days[days.length - 1].day) + ')';
   $('mwin2').textContent = range === 'day' ? 'Today (' + dd(win[0].day) + ')' : 'Last 7 days (' + dd(win[0].day) + ' to ' + dd(win[win.length - 1].day) + ')';
   moneyGrid('mgrid_all', moneyWin(days)); moneyGrid('mgrid_win', moneyWin(win));
+  { const tw = moneyWin(win), net = tw.proceeds - tw.spend;  // 2026-11-19 Today strip
+    $('t_in').textContent = sgn(tw.gross); $('t_keep').textContent = 'you keep ' + sgn(tw.proceeds);
+    $('t_pl').textContent = sgn(net); $('t_pl').className = 'k ' + cls(net); $('t_pll').textContent = net >= 0 ? 'Profit' : 'Loss'; }
   const rows = days.slice().reverse();
   $('mdays').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${dd(r.day)}${r.rev_src === 'apple' ? '' : '<div class="sub">RC</div>'}</td><td class="n">${sgn(r.spend)}</td><td class="n">${sgn(r.gross)}</td><td class="n">${sgn(r.proceeds)}</td><td class="n ${cls(r.proceeds - r.spend)}">${sgn(r.proceeds - r.spend)}</td><td class="n ${cls(r.cum_net)}">${sgn(r.cum_net)}</td></tr>`).join('');
   const all = moneyWin(days);
@@ -725,7 +765,7 @@ function payersCard() {
     : r.plan_state === 'cancelled' ? '<span class="chip ended">cancelled</span>'
     : `<span class="chip ended">${esc(r.plan_state || 'ended')}</span>`;
   const next = (r) => r.plan_kind === 'pass' ? '–' : r.plan_state === 'active' && r.renews_at ? `bills ${esc(r.renews_at)}` : r.ends_at ? `access ends ${esc(r.ends_at)}` : '–';
-  $('pyt').tBodies[0].innerHTML = rows.length ? rows.map((r) => `<tr><td>#${esc(r.user)}<div class="sub">${esc(r.source)}${r.state ? ' · ' + esc(r.state) : ''}${r.purchase_app_version ? ' · ' + esc(r.purchase_app_version) : ''}</div></td><td>${plan(r)} ${state(r)}<div class="sub">${esc((r.product || '').replace(/^premium_/, ''))} · since ${esc(r.started_at || r.purchased_at || '')}</div></td><td class="n">${money(r.paid_usd)}${r.refunded_buys ? '<div class="sub down">refunded</div>' : ''}</td><td>${next(r)}</td></tr>`).join('') : '<tr><td colspan="4">Nobody has paid yet</td></tr>';
+  $('pyt').tBodies[0].innerHTML = rows.length ? rows.map((r) => `<tr><td>#${esc(r.user)}<div class="sub">${esc(lo(r.source))}${r.state ? ' · ' + esc(r.state) : ''}${r.purchase_app_version ? ' · ' + esc(r.purchase_app_version) : ''}</div></td><td>${plan(r)} ${state(r)}<div class="sub">${esc((r.product || '').replace(/^premium_/, ''))} · since ${esc(r.started_at || r.purchased_at || '')}</div></td><td class="n">${money(r.paid_usd)}${r.refunded_buys ? '<div class="sub down">refunded</div>' : ''}</td><td>${next(r)}</td></tr>`).join('') : '<tr><td colspan="4">Nobody has paid yet</td></tr>';
   $('pynote').textContent = 'Real App Store customers only (our own test purchases and the Apple reviewers are left out). "Paid so far" is the gross amount RevenueCat has seen from that customer, before the Apple cut; it grows with each renewal. Free trials that never charged are not here. Times are Nashville time.';
 }
 
@@ -836,11 +876,11 @@ function termsDollars() {
   discTerms(disc);
   if (!live.length) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No data yet</td></tr>'; T.tFoot.innerHTML = ''; $('tsdnote').textContent = ''; return; }
   T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Bid</th><th class="n">Spent</th><th class="n">Taps</th><th class="n">Apple inst.</th><th class="n">RC inst.</th><th class="n">Trials</th><th class="n">Sales</th><th class="n">Revenue</th><th class="n">Per inst.</th><th class="n">Per sale</th></tr>';
-  const row = (x) => { const free = x.nospend || x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(x.term)}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
+  const row = (x) => { const free = x.nospend || x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(lo(x.term))}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
   T.tBodies[0].innerHTML = live.map(row).join('');
   const ad = live.filter((x) => x.term !== 'Organic'), sum = (f, a) => a.reduce((t, x) => t + f(x), 0);
   T.tFoot.innerHTML = `<tr><td>All ads</td><td class="n"></td><td class="n">${money(sum((x) => x.spend, ad))}</td><td class="n">${sum((x) => x.taps, ad)}</td><td class="n">${sum((x) => x.ai, ad)}</td><td class="n">${sum((x) => x.ri, ad)}</td><td class="n">${sum((x) => x.tr, ad)}</td><td class="n">${sum((x) => x.sa, ad)}</td><td class="n">${money(sum((x) => x.rev, ad))}</td><td class="n">${sum((x) => x.ai, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.ai, ad)) : '–'}</td><td class="n">${sum((x) => x.sa, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.sa, ad)) : '–'}</td></tr>`;
-  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Organic = no ad attribution, no spend. "Search tab (no keywords)" = all Search tab campaigns together: they have no keywords, so only Apple\'s spent, taps and installs are shown for them (their installs show in RevenueCat under "Ad (no keyword)" if attributed).' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
+  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Likely organic = no ad attribution, no spend. "Search tab (no keywords)" = all Search tab campaigns together: they have no keywords, so only Apple\'s spent, taps and installs are shown for them (their installs show in RevenueCat under "Ad (no keyword)" if attributed).' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
 }
 
 // ---- upcoming bills
@@ -875,8 +915,8 @@ function trendChart(id, t, series, fmt) {
   if (charts[id]) charts[id].destroy();
   const ds = [];
   series.forEach(([ln, color]) => {
-    ds.push({ label: ln.name, data: ln.values, borderColor: color, backgroundColor: color, borderWidth: 1.5, pointRadius: 2.5, tension: 0, spanGaps: false });
-    ds.push({ label: ln.name + ' (7-day avg)', data: ln.avg7, borderColor: color, borderWidth: 3.5, borderDash: [6, 3], pointRadius: 0, tension: 0.25, spanGaps: true });
+    ds.push({ label: lo(ln.name), data: ln.values, borderColor: color, backgroundColor: color, borderWidth: 1.5, pointRadius: 2.5, tension: 0, spanGaps: false });
+    ds.push({ label: lo(ln.name) + ' (7-day avg)', data: ln.avg7, borderColor: color, borderWidth: 3.5, borderDash: [6, 3], pointRadius: 0, tension: 0.25, spanGaps: true });
   });
   const mk = last.markers_n || [];
   charts[id] = new Chart($(id), { type: 'line', data: { labels: t.labels, datasets: ds }, plugins: [markerPlugin],
@@ -896,10 +936,10 @@ function trendsCard() {
   trendChart('tr_inst', t, [[t.installs[0], cA], [t.installs[1], cG]], (v) => String(Math.round(v * 10) / 10));
   trendChart('tr_cpi', t, [[t.cpi[0], cP]], (v) => sgn(v));
   trendChart('tr_conv', t, [[t.conv[0], cA], [t.conv[1], cO]], (v) => String(Math.round(v * 10) / 10));
-  const gr = (lines) => lines.map((l) => `<div><span class="chip ${l.grade === 'too early' ? 'early' : l.grade}">${esc(l.grade)}</span>${esc(l.name)}: ${esc(l.why)}</div>`).join('');
+  const gr = (lines) => lines.map((l) => `<div><span class="chip ${l.grade === 'too early' ? 'early' : l.grade}">${esc(l.grade)}</span>${esc(lo(l.name))}: ${esc(l.why)}</div>`).join('');
   $('gr_inst').innerHTML = gr(t.installs); $('gr_cpi').innerHTML = gr(t.cpi); $('gr_conv').innerHTML = gr(t.conv);
   $('mklist').innerHTML = inRange.map((m) => `<div class="mk"><b>${m.n}</b>${dd(m.date)}${m.time ? ' ' + esc(m.time) : m.time_ak ? ' ' + esc(m.time_ak) : ''} · ${esc(m.label)}<span class="sub"> ${esc(m.detail || '')}</span></div>`).join('') || '<p class="note">No changes logged in this period.</p>';
-  $('trnote').textContent = 'One chart per measure, finished days only (today is still in progress). Thin line = each day; thick dashed line = 7-day average (fewer days at the start). Numbers on the dashed vertical lines match the list above; a change shows up in the numbers a day or more later. Ads installs and cost are Apple Ads; organic = Apple\'s new downloads minus ad installs (Apple publishes a day the next morning, so the newest day has no organic yet); trials and charges are real App Store ones. Grades: ' + (t.rule || '');
+  $('trnote').textContent = 'One chart per measure, finished days only (today is still in progress). Thin line = each day; thick dashed line = 7-day average (fewer days at the start). Numbers on the dashed vertical lines match the list above; a change shows up in the numbers a day or more later. Ads installs and cost are Apple Ads; likely organic = Apple\'s new downloads minus ad installs (Apple publishes a day the next morning, so the newest day has no likely-organic count yet); trials and charges are real App Store ones. Grades: ' + (t.rule || '');
 }
 
 // ---- ratings and reviews
@@ -960,6 +1000,7 @@ function planLine(p) {
   else { c = 'off'; txt = (p.purchased_at ? `${bought} · ` : `Trial started ${esc(p.started_at)} · `) + `Ended ${esc(p.ends_at)}${p.purchased_at ? '' : ', never paid'} · ${kind}${paid}`; }
   return `<div class="plan ${c}">${txt}</div>`;
 }
+const lo = (v) => v === 'Organic' ? 'Likely organic' : v === 'organic' ? 'likely organic' : typeof v === 'string' ? v.replace(/^Organic /, 'Likely organic ') : v;  // 2026-11-19 owner rule
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function versionLine(p) {
   // The app sends app_version only during setup, so it is the version they SET UP on. RevenueCat's own last-seen version (free in its
@@ -1002,11 +1043,11 @@ function people() {
   const d = last, t = (d.rc_totals || {})[range];
   if (!t) { $('rc').textContent = 'Not connected yet.'; return; }
   $('ulabel').textContent = 'Users (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
-  const cells = [['New users', t.new_users], ['From ads', t.ad_users], ['Organic', t.organic_users], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
+  const cells = [['New users', t.new_users], ['From ads', t.ad_users], ['Likely organic', t.organic_users], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
   $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
   $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
   const list = (d.rc_people || []).filter((p) => filt === 'all' || (filt === 'trial' ? p.status !== 'no trial' : p.source === filt));
-  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(p.source)}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${tagsFor(p)}</span></div>
+  $('people').innerHTML = list.map((p) => `<div class="person"><div class="top"><span>#${esc(p.user)} · ${esc(lo(p.source))}${p.keyword ? ' (' + esc(p.keyword) + ')' : ''}</span><span>${tagsFor(p)}</span></div>
 <div class="meta">First ${esc(p.first)} · last ${esc(p.last)}${p.state ? ' · ' + esc(p.state) : ''}${p.license ? ' · ' + esc(p.license) : ''}${p.age ? ' · age ' + esc(p.age) : ''}${p.days_to_test ? ' · test in ' + esc(p.days_to_test) + ' d' : ''}</div>
 <div class="meta">${esc(p.questions)} questions · ${esc(p.mocks)} mock exams${p.best_mock && p.best_mock !== 'none' ? ' (best ' + esc(p.best_mock) + ')' : ''}</div>
 ${versionLine(p)}
@@ -1019,6 +1060,7 @@ ${p.plan_state ? planLine(p) : (p.trial_start ? `<div class="meta">Trial ${esc(p
 ${cancelLines(p)}
 ${p.left_at ? `<div class="meta">Left at: ${esc(p.left_at)}</div>` : ''}
 ${detailBox(p)}</div>`).join('') || '<p class="note">Nobody yet.</p>';
+  $('people_sum').textContent = 'Show the list (' + list.length + (list.length === 1 ? ' person' : ' people') + ')';
   $('rc').textContent = 'Only App Store installs; our own test installs are left out. Times are Nashville time; days are Apple Ads days (Alaska). Updated ' + (d.rc_pulled ? ago(d.rc_pulled) : '');
 }
 // 2026-10-24 (David: "Show every day", "Add more searches"): searches in groups (General / States / CDL,
@@ -1071,6 +1113,7 @@ function appleReviewCard() {
   ban.className = 'arvban' + (bt ? ' on' : ''); ban.innerHTML = bt ? esc(bt) + ' · <a href="#arvbox">details</a>' : '';
   const stat = bt ? bt : (waiting.length || subWait) ? 'Waiting for review' + (waiting.length ? ': ' + waiting.map((v) => v.version).join(', ') : '') + '. Apple has not started yet.'
     : 'No version is waiting or in review right now.' + (lastAct ? ' Last reviewer device activity: ' + lastAct.last + ' (v' + esc(lastAct.version) + ').' : '');
+  $('t_arv').innerHTML = 'Apple review: ' + ((r.versions || []).slice(0, 2).map((v) => esc(v.version) + ' ' + esc(String(v.label).replace(/ \(.*\)$/, '').toLowerCase())).join(' · ') || '–') + ' · <a href="#g-review">details</a>';  // 2026-11-19 strip line
   $('arvstatus').textContent = stat; $('arvstatus').className = 'st' + (bt ? ' now' : '');
   const since = (v) => !v.when ? '' : v.exact ? esc(v.when) + ' <span class="sub">first seen</span>' : /already/.test(v.note) ? '<span class="sub">before ' + esc(v.when) + ' (when tracking began)</span>' : esc(v.when) + ' <span class="sub">' + esc(v.note) + '</span>';
   $('arvv').tBodies[0].innerHTML = (r.versions || []).map((v) => `<tr><td>v${esc(v.version)}</td><td><span class="chip ${cls(v.state, v.active)}">${esc(v.label)}</span></td><td>${since(v)}</td></tr>`).join('') || '<tr><td colspan="3">No data yet</td></tr>';
@@ -1180,7 +1223,7 @@ async function load() {
 $('reload').onclick = load;
 const links = [...document.querySelectorAll('nav a')];
 const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => { const on = a.hash === '#' + e.target.id; a.classList.toggle('on', on); if (on) { const nv = a.parentNode; nv.scrollLeft = a.offsetLeft - nv.clientWidth / 2 + a.clientWidth / 2; } }); }), { rootMargin: '-40% 0px -55% 0px' });
-['g-summary', 'g-money', 'g-customers', 'g-ads', 'g-store', 'g-trends', 'g-people', 'g-ratings'].forEach((id) => spy.observe($(id)));
+['g-summary', 'g-money', 'g-funnel', 'g-ads', 'g-ratings', 'g-review'].forEach((id) => spy.observe($(id)));
 // ---- hide / show every card (David 10-16, A). Attaches to the common class .card, so cards added later get a button too.
 // State lives in localStorage under one key, per card id; the page works the same when storage is unavailable.
 (function () {
