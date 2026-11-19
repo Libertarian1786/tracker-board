@@ -285,6 +285,7 @@ h3.subh,summary.subh{font-size:14px;font-weight:600;text-transform:none;letter-s
 <section class="card" id="funnel">
 <h2 id="funlabel">Funnel</h2>
 <p class="cap">How far people get: setup, offer screens, paywall, trial.</p>
+<p class="note" id="funextra" style="font-weight:600"></p>
 <div style="overflow-x:auto"><table id="fun"><thead></thead><tbody></tbody></table></div>
 <p class="note" id="funnote" style="margin-top:8px;font-size:12px"></p>
 </section>
@@ -658,7 +659,10 @@ function moneyCard() {
 function funnelCard() {
   const g0 = (((last.rc_funnel || {})[range]) || []);
   const label = range === 'day' ? 'today' : 'last 7 days';
-  $('funlabel').textContent = 'Funnel (' + label + ')';
+  $('funlabel').textContent = 'Funnel: people who installed ' + label;  // 2026-11-19 owner: funnel vs Summary purchases
+  { const cv = ((last.rc_converted || {})[range]) || []; const paidAll = cv.reduce((t, r) => t + (r.weekly || 0) + (r.pass || 0) + (r.other || 0), 0); const revAll = cv.reduce((t, r) => t + (r.revenue || 0), 0);
+    const g1 = (((last.rc_funnel || {})[range]) || []).filter((x) => x.installs); const paidHere = g1.reduce((t, x) => t + (x.paid || 0), 0);
+    const extra = paidAll - paidHere; const el = $('funextra'); if (el) el.textContent = extra > 0 ? '+' + extra + ' purchase' + (extra > 1 ? 's' : '') + ' ' + label + ' from people who installed earlier (' + money(revAll) + ' in all purchases ' + label + ')' : ''; }
   const T = $('fun');
   if (!g0.length || !g0.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>'; $('funnote').textContent = ''; return; }
   // 2026-11-03 (owner: "fix the tracker funnel it's set up poorly"): the app's own order, each row a part of the row above,
