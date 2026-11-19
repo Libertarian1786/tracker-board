@@ -904,7 +904,8 @@ function ratePageSummary() {  // 2026-11-17 owner: /rate page stats in the top S
   $('sum_rpv').textContent = p.today_visits; $('sum_rpv_all').textContent = 'today · ' + p.visits + ' all time';
   $('sum_rpi').textContent = p.today_install_taps; $('sum_rpi_all').textContent = 'today · ' + p.install_taps + ' all time';
   $('sum_rpr').textContent = p.today_rate_taps; $('sum_rpr_all').textContent = 'today · ' + p.rate_taps + ' all time';
-  $('sum_rp_where').textContent = (p.places && p.places.length ? '/rate page by place: ' + p.places.join(' · ') : '') + (p.last ? ' · last activity ' + p.last : '');
+  $('sum_rp_where').textContent = (p.places && p.places.length ? '/rate page by place: ' + p.places.join(' · ') : '') + (p.last ? ' · last activity ' + p.last : '')
+    + (p.counter_visits != null ? ' · counts from the event log; page counter (undercounts) reads ' + p.counter_visits + ' visits, ' + p.counter_install_taps + ' install taps, ' + p.counter_rate_taps + ' rate taps' : '');
 }
 function reviewsCard() {
   try { ratePageSummary(); } catch (e) {}
