@@ -726,8 +726,8 @@ function ascCard() {
   if (!A || !(A.days || []).length) { S.tBodies[0].innerHTML = '<tr><td>No App Store analytics yet</td></tr>'; return; }
   const base = A.baseline_pct;
   const pct = (n, d) => d ? (n / d * 100) : null;
-  const cell = (n, d) => { const p = pct(n, d); if (p == null) return `${n}<span class="sub">–</span>`;
-    const hi = p >= base; return `${n}<span class="sub" style="color:var(${hi ? '--good' : '--bad'})">${p.toFixed(1)}% ${hi ? '▲ above' : '▼ below'}</span>`; };
+  const cell = (n, d) => { const p = pct(n, d); if (p == null) return `${n}<span class="sub" style="display:block">–</span>`;
+    const hi = p >= base; return `${n}<span class="sub" style="display:block;color:var(${hi ? '--good' : '--bad'})">${p.toFixed(1)}% ${hi ? '▲ above' : '▼ below'}</span>`; };
   const W = [['Last day', A.last_day], ['7 days', A.d7], ['30 days', A.d30]];
   S.tHead.innerHTML = '<tr><th></th>' + W.map(([l, w]) => `<th class="n">${l}<div class="sub" style="font-weight:400">${esc(w.first === w.last ? w.last : w.first + ' – ' + w.last)}</div></th>`).join('') + '</tr>';
   const row = (l, f) => `<tr><td>${l}</td>${W.map(([, w]) => `<td class="n">${f(w)}</td>`).join('')}</tr>`;
@@ -755,7 +755,7 @@ function ascCard() {
       rs('↳ Websites', (w) => w.web),
       rs('↳ Other apps', (w) => w.app),
       rs('↳ Other / unavailable', (w) => w.other),
-      rs('Compare: RevenueCat "Likely organic"', (w) => w.cmp_days ? `${w.cmp_rc}<span class="sub">vs ${w.cmp_apple} not from ads (Apple), ${w.cmp_days} same day${w.cmp_days === 1 ? '' : 's'}</span>` : '–'),
+      rs('Compare: RevenueCat "Likely organic"', (w) => w.cmp_days ? `${w.cmp_rc}<span class="sub" style="display:block">vs ${w.cmp_apple} not from ads (Apple), ${w.cmp_days} same day${w.cmp_days === 1 ? '' : 's'}</span>` : '–'),
     ].join('');
   } else { X.tBodies[0].innerHTML = '<tr><td>No download sources yet</td></tr>'; }
   $('ascnote').textContent = "Not from ads = Apple's own downloads (first-time + redownloads) by source type, with Apple Ads' installs taken off App Store search because Apple counts an ad install as a search download; a day shows only once Apple Ads' count for it is in. RevenueCat's Likely organic = people who opened the app with no Apple Ads link, by the tracker's day; the two count different things (Apple: downloads; RevenueCat: first opens), so they will not match exactly. From Apple's App Store analytics files (pulled every 12 hours), App Store search only. Seen = search impressions; installed = downloads from search. Ads = Apple Ads' own impressions and installs; Likely organic = Apple's search total minus ads (not tied to an ad; most installs may still come from ads). When ads counted more than Apple's total, Likely organic shows 0 that day. Every day is kept.";
