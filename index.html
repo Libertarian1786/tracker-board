@@ -290,7 +290,7 @@ details.lst[open]>summary{margin-bottom:4px}
 <section class="card" id="vercard">
 <h2 id="verlabel">By version</h2>
 <p class="cap">Installs split by the app version people set up on.</p>
-<table id="vers"><thead><tr><th>Set up on</th><th class="n">Installs</th><th class="n">Ads</th><th class="n">Likely org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<table id="vers"><thead><tr><th>Set up on</th><th class="n">Installs</th><th class="n">Tied to an ad<div class="sub">RevenueCat</div></th><th class="n">Not tied<div class="sub">RevenueCat, undercounts ads</div></th><th class="n">Trials</th><th class="n">Paid</th><th class="n">Tapped buy</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
 <details class="nt"><summary><span>Grouped by the app version people set up on.</span> <span class="mo"></span></summary><p class="note" id="vernote"></p></details>
 <details id="exclnote" style="margin-top:8px;font-size:12px;display:none"><summary id="exclsum" style="cursor:pointer;color:var(--mute)"></summary><div id="excllist" class="note" style="margin-top:6px"></div></details>
 </section>
@@ -298,7 +298,7 @@ details.lst[open]>summary{margin-bottom:4px}
 <section class="card" id="agecard">
 <h2 id="agelabel">Ages</h2>
 <p class="cap">Installs, trials and paid, by the age people chose.</p>
-<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Ads</th><th class="n">Likely org.</th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+<table id="ages"><thead><tr><th>Age</th><th class="n">Total</th><th class="n">Tied to an ad<div class="sub">RevenueCat</div></th><th class="n">Not tied<div class="sub">RevenueCat, undercounts ads</div></th><th class="n">Trials</th><th class="n">Paid</th><th class="n">%</th></tr></thead><tbody></tbody><tfoot></tfoot></table>
 <details class="nt"><summary><span>By the age people picked in setup.</span> <span class="mo"></span></summary><p class="note" id="agenote"></p></details>
 <h3 id="abalabel" class="subh">Ads by age</h3>
 <div style="overflow-x:auto"><table id="aba"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
@@ -309,14 +309,15 @@ details.lst[open]>summary{margin-bottom:4px}
 <h2>Ads vs likely organic</h2>
 <p class="cap">Where people came from: paid ads, or finding the app on their own.</p>
 <table id="split"><thead><tr><th></th><th class="n">Ads</th><th class="n">Likely organic</th><th class="n">Total</th></tr></thead><tbody>
-<tr><td>New installs</td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
+<tr><td>New installs<div class="sub" id="s_i_src">ads: Apple Ads count</div></td><td class="n" id="s_i_a">–</td><td class="n" id="s_i_o">–</td><td class="n" id="s_i_t">–</td></tr>
+<tr><th></th><th class="n">Tied to an ad<div class="sub">RevenueCat</div></th><th class="n">Not tied to an ad<div class="sub">RevenueCat — undercounts ads</div></th><th class="n">Total</th></tr>
 <tr><td>Trials</td><td class="n" id="s_t_a">–</td><td class="n" id="s_t_o">–</td><td class="n" id="s_t_t">–</td></tr>
 <tr><td>Purchases</td><td class="n" id="s_p_a">–</td><td class="n" id="s_p_o">–</td><td class="n" id="s_p_t">–</td></tr>
 <tr><td>Tapped buy, didn't finish</td><td class="n" id="s_b_a">–</td><td class="n" id="s_b_o">–</td><td class="n" id="s_b_t">–</td></tr>
-<tr><td>Revenue</td><td class="n" id="s_r_a">–</td><td class="n" id="s_r_o">–</td><td class="n" id="s_r_t">–</td></tr>
+<tr><td>Revenue<div class="sub">total only, not split</div></td><td class="n" colspan="2"></td><td class="n" id="s_r_t">–</td></tr>
 </tbody></table>
 <p class="note" id="rcnote"></p>
-<details class="nt"><summary><span>From RevenueCat; likely organic = no Apple Ads link found.</span> <span class="mo"></span></summary><p class="note">Counted from RevenueCat, App Store installs only. Likely organic = no Apple Ads attribution. Installs here are people who opened the app, so they can differ from the Apple Ads install count.</p><p class="note">"Tapped buy, didn't finish" = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6) but has no trial and no purchase. One definition, used by every section. On one-tap cards the result is recorded (cancelled / pending / failed); on RevenueCat paywalls the app does not yet record what happened after the tap (needs an app build), so those rows show the order of what the phone sent. Price shown is inferred from the screen they reached.</p></details>
+<details class="nt"><summary><span>Installs: Apple's counts. Trials, purchases, taps: RevenueCat's ad link.</span> <span class="mo"></span></summary><p class="note" id="splitnote">New installs: Ads = Apple Ads' own install count. Likely organic = Apple's "not from ads" downloads (App Store analytics) on days Apple has published; otherwise Apple's new downloads (or, before Apple publishes the day, RevenueCat's new users) minus Apple Ads installs, never below 0. Total = the two added. Trials, purchases and taps can only be tied to an ad per person by RevenueCat, which misses many ad installs (it linked none from Nov 1 to Nov 16, while the ads ran with a 19+ age limit), so "not tied to an ad" includes many people who came from ads. Revenue is shown as one total, never split.</p><p class="note">"Tapped buy, didn't finish" = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6) but has no trial and no purchase. One definition, used by every section. On one-tap cards the result is recorded (cancelled / pending / failed); on RevenueCat paywalls the app does not yet record what happened after the tap (needs an app build), so those rows show the order of what the phone sent. Price shown is inferred from the screen they reached.</p></details>
 </section>
 
 <section class="card" id="users">
@@ -329,7 +330,7 @@ details.lst[open]>summary{margin-bottom:4px}
 <h2>Each person (newest activity first)</h2>
 <p class="cap">One line per person; tags show where they got to, plus plan and app version.</p>
 <details class="lst"><summary id="people_sum">Show the list</summary>
-<div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Ads</button><button data-f="organic">Likely organic</button></div>
+<div class="seg" id="ufilter"><button data-f="all" class="on">All</button><button data-f="trial">Trials</button><button data-f="ad">Tied to an ad (RC)</button><button data-f="organic">Not tied to an ad (RC)</button></div>
 <div id="people"></div>
 </details>
 <details class="nt"><summary><span>App Store installs only; our own test installs are left out.</span> <span class="mo"></span></summary><p class="note" id="rc"></p></details>
@@ -585,21 +586,45 @@ function chart(points) {
 }
 let last = {}, range = 'day';
 try { range = localStorage.getItem('range') || 'day'; } catch (e) {}
+// 2026-11-20 (owner "Fix the organic numbers on the tracker"): installs from ads vs Likely organic come from Apple, per day:
+// ads = Apple Ads installs; Likely organic = Apple's "not from ads" downloads (App Store analytics) where published, else
+// Apple's new downloads minus ad installs, else (day not published yet) RevenueCat new users minus ad installs; never below 0.
+// RevenueCat's own ad link misses most ad installs (none from Nov 1 to Nov 16), so it is no longer used for install counts.
+function instSplit() {
+  const m = (last.money || {}).days || [];
+  if (!m.length) return null;
+  const win = range === 'day' ? m.slice(-1) : m.slice(-7), asc = {};
+  for (const r of (((last.asc_funnel || {}).sources || {}).days || [])) if (r.not_ads != null) asc[r.day] = r.not_ads;
+  const t = { ads: 0, org: 0, nA: 0, nD: 0, nR: 0 };
+  for (const r of win) {
+    const ai = r.ad_installs || 0; t.ads += ai;
+    if (asc[r.day] != null) { t.org += asc[r.day]; t.nA++; }
+    else if (r.downloads != null) { t.org += Math.max(0, r.downloads - ai); t.nD++; }
+    else { t.org += Math.max(0, (r.rc_new || 0) - ai); t.nR++; }
+  }
+  const n = (k) => k + (k === 1 ? ' day' : ' days'), many = win.length > 1, parts = [];
+  if (t.nA) parts.push("Apple's not-from-ads count" + (many ? ' (' + n(t.nA) + ')' : ''));
+  if (t.nD) parts.push("Apple's new downloads minus ad installs" + (many ? ' (' + n(t.nD) + ')' : ''));
+  if (t.nR) parts.push('RevenueCat new users minus ad installs, Apple not out yet' + (many ? ' (' + n(t.nR) + ')' : ''));
+  t.src = 'ads: Apple Ads count · likely organic: ' + parts.join(', ');
+  return t;
+}
 function summary() {
   const d = last, days = d.ads_days || [];
   const a = range === 'day' ? (d.ads_today || {}) : days.reduce((t, r) => ({ impressions: t.impressions + r.impressions, taps: t.taps + r.taps, installs: t.installs + r.installs, spend: t.spend + r.spend }), { impressions: 0, taps: 0, installs: 0, spend: 0 });
   const rc = (d.rc_totals || {})[range] || {};
   $('rlabel').textContent = range === 'day' ? 'Today' + (a.day ? ' (' + a.day + ')' : '') : 'Last 7 days' + (days.length ? ' (' + days[days.length - 1].day.slice(5) + ' to ' + days[0].day.slice(5) + ')' : '');
-  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('t_imp').textContent = a.impressions ?? '–'; $('t_taps').textContent = a.taps ?? '–'; $('inst').textContent = rc.new_users ?? a.installs ?? '–'; $('inst_apple').textContent = (rc.new_users != null ? (rc.ad_users ?? 0) + ' ads · ' + (rc.organic_users ?? 0) + ' likely organic · ' : '') + 'Apple ads: ' + (a.installs ?? '–') + ' (~3 h behind)';  // owner 11-19: impressions back in the Today strip
+  $('imp').textContent = a.impressions ?? '–'; $('taps').textContent = a.taps ?? '–'; $('t_imp').textContent = a.impressions ?? '–'; $('t_taps').textContent = a.taps ?? '–'; $('inst').textContent = rc.new_users ?? a.installs ?? '–'; const IS = instSplit();  // 2026-11-20 owner "Fix the organic numbers": install split from Apple's counts, not RevenueCat's ad link
+  $('inst_apple').textContent = IS ? IS.ads + ' from ads · ' + IS.org + ' likely organic (ads: Apple Ads count, ~3 h behind)' : 'Apple ads: ' + (a.installs ?? '–') + ' (~3 h behind)';  // owner 11-19: impressions back in the Today strip
   $('trials').textContent = rc.trials ?? '–'; $('buys').textContent = rc.purchases ?? '–';
   $('spend').textContent = money(a.spend); $('cpt').textContent = a.taps ? money(a.spend / a.taps) : '–';
   $('cpi').textContent = a.installs ? money(a.spend / a.installs) : '–'; $('cpb').textContent = rc.purchases ? money(a.spend / rc.purchases) : '–';
   const sp = (id, x, y) => { $('s_' + id + '_a').textContent = x ?? '–'; $('s_' + id + '_o').textContent = y ?? '–'; $('s_' + id + '_t').textContent = x == null || y == null ? '–' : (typeof x === 'string' ? '' : x + y); };
   const has = rc.organic_users != null && rc.organic_trials != null;
-  sp('i', has ? rc.ad_users : null, has ? rc.organic_users : null); sp('t', has ? rc.ad_trials : null, has ? rc.organic_trials : null);
+  sp('i', IS ? IS.ads : null, IS ? IS.org : null); $('s_i_src').textContent = IS ? IS.src : 'ads: Apple Ads count'; sp('t', has ? rc.ad_trials : null, has ? rc.organic_trials : null);
   sp('p', has ? rc.ad_purchases : null, has ? rc.organic_purchases : null);
   sp('b', rc.tapped_buy != null ? rc.ad_tapped_buy : null, rc.tapped_buy != null ? rc.organic_tapped_buy : null);
-  $('s_r_a').textContent = has ? money(rc.ad_revenue) : '–'; $('s_r_o').textContent = has ? money(rc.organic_revenue) : '–'; $('s_r_t').textContent = has ? money(rc.ad_revenue + rc.organic_revenue) : '–';
+  $('s_r_t').textContent = rc.revenue != null ? money(rc.revenue) : '–';  // money is never split by ads vs likely organic (owner rule)
   $('rcnote').textContent = d.rc_totals ? '' : 'Trials and purchases appear once RevenueCat is connected.';
   document.querySelectorAll('#ads .seg button').forEach((b) => b.classList.toggle('on', b.dataset.r === range));
   const cr = ((d.ads_campaigns || {}).rows || []).map((c) => Object.assign({}, c, { p: c[range] || { spend: 0, impressions: 0, taps: 0, installs: 0 } }))
@@ -627,7 +652,7 @@ function agesTable() {
   const tp = { w: sum('paid_weekly'), m: sum('paid_monthly'), p: sum('paid_pass'), o: sum('paid_other') };
   const tsub = [tp.w && tp.w + ' wk', tp.m && tp.m + ' mo', tp.p && tp.p + ' pass', tp.o && tp.o + ' other'].filter(Boolean).join(' · ');
   $('ages').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${all}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}${tsub ? `<div class="sub" style="font-weight:400">${esc(tsub)}</div>` : ''}</td><td class="n">${all ? '100%' : '–'}</td></tr>`;
-  $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Ads and Likely organic = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Ads = Apple Ads attribution. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
+  $('agenote').textContent = 'Follows the Today / This week switch. The data is a rolling 7-day window: people last seen in the past 7 days (Alaska days, same as Apple Ads), App Store installs only, same people as the Summary. Total, Tied to an ad and Not tied = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid = trials started and purchases made in it (they can be people who installed earlier, so a row can have more trials than installs). Tied to an ad = RevenueCat linked the person to Apple Ads; RevenueCat misses many ad installs (none linked Nov 1 to Nov 16), so Not tied includes many people from ads. Apple\'s own ads vs Likely organic install count is in the Ads vs likely organic card. "18–24 (older app)" appears only for app versions before 1.8.6, which did not split that group. Not given = skipped or no answer. % = share of Total.';
 }
 function versionsTable() {
   try {
@@ -643,7 +668,7 @@ function versionsTable() {
   const sum = (k) => rows.reduce((t, r) => t + (r[k] || 0), 0);
   $('vers').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${r.version === 'none' ? 'Not recorded' : 'v' + esc(r.version)}</td><td class="n">${r.installs}</td><td class="n">${r.ads}</td><td class="n">${r.organic}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td><td class="n">${r.tapped_buy}</td></tr>`).join('');
   $('vers').tFoot.innerHTML = `<tr><td>Total</td><td class="n">${sum('installs')}</td><td class="n">${sum('ads')}</td><td class="n">${sum('organic')}</td><td class="n">${sum('trials')}</td><td class="n">${sum('paid')}</td><td class="n">${sum('tapped_buy')}</td></tr>`;
-  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person. The app only reports its version during setup, so this is the version they SET UP on, not necessarily the one they use now (a row shows RevenueCat\'s own "last seen" version beside it). People first seen before we started recording this have their oldest known version, which can be later than the one they set up on (marked with ≈ on their row). The 6 people with no setup version show only RevenueCat\'s version. Counted like the Ages table: Installs, Ads and Likely organic = new installs; Trials, Paid and Tapped buy = those events in the period. Tapped buy = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6), no trial, no purchase. Apple review test devices stay left out, but RevenueCat\'s own dashboard still counts them.';
+  $('vernote').textContent = 'Follows the Today / This week switch. Grouped by the first app version we saw for each person. The app only reports its version during setup, so this is the version they SET UP on, not necessarily the one they use now (a row shows RevenueCat\'s own "last seen" version beside it). People first seen before we started recording this have their oldest known version, which can be later than the one they set up on (marked with ≈ on their row). The 6 people with no setup version show only RevenueCat\'s version. Counted like the Ages table: Installs, Tied to an ad and Not tied = new installs (the ad link is RevenueCat\'s and undercounts ads); Trials, Paid and Tapped buy = those events in the period. Tapped buy = pressed a buy button (RevenueCat paywall since 1.8.5, one-tap cards since 1.8.6), no trial, no purchase. Apple review test devices stay left out, but RevenueCat\'s own dashboard still counts them.';
 }
 function adsByAge() {
   const d = ((last.rc_ads_by_age || {})[range]) || null;
@@ -658,7 +683,7 @@ function adsByAge() {
   T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Installs</th>' + cols.map((g) => `<th class="n">${esc(g.label)}</th>`).join('') + '<th class="n">Under-18 %</th><th class="n">Trials</th><th class="n">Paid</th></tr>';
   T.tBodies[0].innerHTML = d.rows.map((r) => `<tr><td>${esc(lo(r.term))}</td><td class="n">${r.installs}</td>` + cols.map((g) => `<td class="n">${cell(r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(r.under18, r.installs)}</td><td class="n">${r.trials}</td><td class="n">${r.paid}</td></tr>`).join('');
   T.tFoot.innerHTML = '<tr><td>Total</td><td class="n">' + inst + '</td>' + cols.map((g) => `<td class="n">${sum((r) => r.by_age[g.key] || 0)}</td>`).join('') + `<td class="n">${pc(u18, inst)}</td><td class="n">${sum((r) => r.trials)}</td><td class="n">${sum((r) => r.paid)}</td></tr>`;
-  $('abanote').textContent = 'Follows the Today / This week switch. Rolling 7-day window (Alaska days, same as Apple Ads), App Store installs only. Ages are what people chose in setup. Search term = Apple Ads keyword from RevenueCat attribution; Likely organic = no ad attribution. Installs = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid are counted as in the Ages table above (they can include people who installed earlier, so a row can show trials with 0 installs). Age columns that are empty for every row are hidden.';
+  $('abanote').textContent = 'Follows the Today / This week switch. Rolling 7-day window (Alaska days, same as Apple Ads), App Store installs only. Ages are what people chose in setup. Search term = Apple Ads keyword from RevenueCat attribution; Not tied to an ad = RevenueCat found no ad link (it undercounts ads, so many of these came from ads). Installs = new installs in the ' + (range === 'day' ? 'day' : 'week') + '; Trials and Paid are counted as in the Ages table above (they can include people who installed earlier, so a row can show trials with 0 installs). Age columns that are empty for every row are hidden.';
 }
 // ------------------------------------------------------------------ 2026-10-16 additions
 const sgn = (v) => v == null || !isFinite(v) ? '–' : (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2);
@@ -755,10 +780,10 @@ function ascCard() {
       rs('↳ Websites', (w) => w.web),
       rs('↳ Other apps', (w) => w.app),
       rs('↳ Other / unavailable', (w) => w.other),
-      rs('Compare: RevenueCat "Likely organic"', (w) => w.cmp_days ? `${w.cmp_rc}<span class="sub" style="display:block">vs ${w.cmp_apple} not from ads (Apple), ${w.cmp_days} same day${w.cmp_days === 1 ? '' : 's'}</span>` : '–'),
+      rs('Compare: RevenueCat "not tied to an ad"', (w) => w.cmp_days ? `${w.cmp_rc}<span class="sub" style="display:block">vs ${w.cmp_apple} not from ads (Apple), ${w.cmp_days} same day${w.cmp_days === 1 ? '' : 's'}</span>` : '–'),
     ].join('');
   } else { X.tBodies[0].innerHTML = '<tr><td>No download sources yet</td></tr>'; }
-  $('ascnote').textContent = "Not from ads = Apple's own downloads (first-time + redownloads) by source type, with Apple Ads' installs taken off App Store search because Apple counts an ad install as a search download; a day shows only once Apple Ads' count for it is in. RevenueCat's Likely organic = people who opened the app with no Apple Ads link, by the tracker's day; the two count different things (Apple: downloads; RevenueCat: first opens), so they will not match exactly. From Apple's App Store analytics files (pulled every 12 hours), App Store search only. Seen = search impressions; installed = downloads from search. Ads = Apple Ads' own impressions and installs; Likely organic = Apple's search total minus ads (not tied to an ad; most installs may still come from ads). When ads counted more than Apple's total, Likely organic shows 0 that day. Every day is kept.";
+  $('ascnote').textContent = "Not from ads = Apple's own downloads (first-time + redownloads) by source type, with Apple Ads' installs taken off App Store search because Apple counts an ad install as a search download; a day shows only once Apple Ads' count for it is in. RevenueCat's \"not tied to an ad\" = people who opened the app with no Apple Ads link, by the tracker's day (RevenueCat undercounts ads); the two count different things (Apple: downloads; RevenueCat: first opens), so they will not match exactly. From Apple's App Store analytics files (pulled every 12 hours), App Store search only. Seen = search impressions; installed = downloads from search. Ads = Apple Ads' own impressions and installs; Likely organic = Apple's search total minus ads (not tied to an ad; most installs may still come from ads). When ads counted more than Apple's total, Likely organic shows 0 that day. Every day is kept.";
 }
 
 function funnelCard() {
@@ -942,11 +967,11 @@ function termsDollars() {
   discTerms(disc);
   if (!live.length) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No data yet</td></tr>'; T.tFoot.innerHTML = ''; $('tsdnote').textContent = ''; return; }
   T.tHead.innerHTML = '<tr><th>Search term</th><th class="n">Bid</th><th class="n">Spent</th><th class="n">Taps</th><th class="n">Apple inst.</th><th class="n">RC inst.</th><th class="n">Trials</th><th class="n">Sales</th><th class="n">Revenue</th><th class="n">Per inst.</th><th class="n">Per sale</th></tr>';
-  const row = (x) => { const free = x.nospend || x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(lo(x.term))}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
+  const row = (x) => { const free = x.nospend || x.term === 'Organic', norev = x.term === 'Organic'; return `<tr class="${x.status === 'PAUSED' ? 'paused' : ''}"><td>${esc(lo(x.term))}${x.status === 'PAUSED' ? '<div class="sub">paused</div>' : ''}</td><td class="n">${x.bid != null ? money(x.bid) : '–'}</td><td class="n">${free ? '–' : money(x.spend)}</td><td class="n">${free ? '–' : x.taps}</td><td class="n">${free ? '–' : x.ai}</td><td class="n">${x.ri}</td><td class="n">${x.tr}</td><td class="n">${x.sa}</td><td class="n">${norev ? '–' : money(x.rev)}</td><td class="n">${!free && x.ai && x.spend ? money(x.spend / x.ai) : '–'}</td><td class="n">${!free && x.sa && x.spend ? money(x.spend / x.sa) : '–'}</td></tr>`; };
   T.tBodies[0].innerHTML = live.map(row).join('');
   const ad = live.filter((x) => x.term !== 'Organic'), sum = (f, a) => a.reduce((t, x) => t + f(x), 0);
-  T.tFoot.innerHTML = `<tr><td>All ads</td><td class="n"></td><td class="n">${money(sum((x) => x.spend, ad))}</td><td class="n">${sum((x) => x.taps, ad)}</td><td class="n">${sum((x) => x.ai, ad)}</td><td class="n">${sum((x) => x.ri, ad)}</td><td class="n">${sum((x) => x.tr, ad)}</td><td class="n">${sum((x) => x.sa, ad)}</td><td class="n">${money(sum((x) => x.rev, ad))}</td><td class="n">${sum((x) => x.ai, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.ai, ad)) : '–'}</td><td class="n">${sum((x) => x.sa, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.sa, ad)) : '–'}</td></tr>`;
-  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Likely organic = no ad attribution, no spend. "Search tab (no keywords)" = all Search tab campaigns together: they have no keywords, so only Apple\'s spent, taps and installs are shown for them (their installs show in RevenueCat under "Ad (no keyword)" if attributed).' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
+  T.tFoot.innerHTML = `<tr><td>All ads</td><td class="n"></td><td class="n">${money(sum((x) => x.spend, ad))}</td><td class="n">${sum((x) => x.taps, ad)}</td><td class="n">${sum((x) => x.ai, ad)}</td><td class="n">${sum((x) => x.ri, ad)}</td><td class="n">${sum((x) => x.tr, ad)}</td><td class="n">${sum((x) => x.sa, ad)}</td><td class="n">–</td><td class="n">${sum((x) => x.ai, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.ai, ad)) : '–'}</td><td class="n">${sum((x) => x.sa, ad) ? money(sum((x) => x.spend, ad) / sum((x) => x.sa, ad)) : '–'}</td></tr>`;
+  $('tsdnote').textContent = 'Follows the Today / This week switch. Spent, taps, bid and "Apple inst." are Apple Ads\' own numbers. "RC inst.", trials, sales and revenue are RevenueCat people attributed to that search term (App Store installs only; trials and sales counted in the period, as in the Ages table). Apple counts an install when it is downloaded, RevenueCat when the app is opened, so the two install columns do not match exactly. Per inst. = spent divided by Apple installs; Per sale = spent divided by sales, "–" when there are none. Not tied to an ad = RevenueCat found no ad link (it undercounts ads), no spend; its revenue is not shown, and neither is an all-ads revenue total, because money is never split by ads vs likely organic. "Search tab (no keywords)" = all Search tab campaigns together: they have no keywords, so only Apple\'s spent, taps and installs are shown for them (their installs show in RevenueCat under "Ad (no keyword)" if attributed).' + (quiet ? ' ' + quiet + ' more term' + (quiet > 1 ? 's' : '') + ' with no activity are hidden.' : '');
 }
 
 // ---- upcoming bills
@@ -1066,7 +1091,7 @@ function planLine(p) {
   else { c = 'off'; txt = (p.purchased_at ? `${bought} · ` : `Trial started ${esc(p.started_at)} · `) + `Ended ${esc(p.ends_at)}${p.purchased_at ? '' : ', never paid'} · ${kind}${paid}`; }
   return `<div class="plan ${c}">${txt}</div>`;
 }
-const lo = (v) => v === 'Organic' ? 'Likely organic' : v === 'organic' ? 'likely organic' : typeof v === 'string' ? v.replace(/^Organic /, 'Likely organic ') : v;  // 2026-11-19 owner rule
+const lo = (v) => v === 'Organic' ? 'Not tied to an ad (RevenueCat — undercounts ads)' : v === 'organic' ? 'not tied to an ad (RevenueCat — undercounts ads)' : v === 'ad' ? 'tied to an ad (RevenueCat)' : typeof v === 'string' ? v.replace(/^Organic /, 'Likely organic ') : v;  // 2026-11-19 owner rule
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function versionLine(p) {
   // The app sends app_version only during setup, so it is the version they SET UP on. RevenueCat's own last-seen version (free in its
@@ -1109,7 +1134,8 @@ function people() {
   const d = last, t = (d.rc_totals || {})[range];
   if (!t) { $('rc').textContent = 'Not connected yet.'; return; }
   $('ulabel').textContent = 'Users (' + (range === 'day' ? 'today' : 'last 7 days') + ')';
-  const cells = [['New users', t.new_users], ['From ads', t.ad_users], ['Likely organic', t.organic_users], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
+  const IS = instSplit();  // 2026-11-20: Apple's counts, not RevenueCat's ad link
+  const cells = [['New users', t.new_users], ['From ads<div class="sub">Apple Ads count</div>', IS ? IS.ads : '–'], ['Likely organic<div class="sub">Apple\'s counts</div>', IS ? IS.org : '–'], ['Active', t.active_users], ['Trials started', t.trials], ['Purchases', t.purchases], ['Questions answered', t.questions_answered], ['Users answering', t.users_answering], ['Revenue', money(t.revenue)]];
   $('ugrid').innerHTML = cells.map(([l, v]) => `<div><div class="k">${esc(v)}</div><div class="l">${l}</div></div>`).join('');
   $('left').tBodies[0].innerHTML = (t.where_non_trial_users_left || []).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('') || '<tr><td>None</td></tr>';
   const list = (d.rc_people || []).filter((p) => filt === 'all' || (filt === 'trial' ? p.status !== 'no trial' : p.source === filt));
