@@ -705,7 +705,8 @@ function buyOutRow(cols) {
   if (!b) return `<tr><td colspan="${cols}" style="padding-left:18px;font-size:13px">After tapping buy: not recorded yet</td></tr>`;
   const errs = (b.top_errors || []).map(([c, n]) => esc(c) + (n > 1 ? ' ×' + n : '')).join(', ');
   return `<tr><td colspan="${cols}" style="padding-left:18px;font-size:13px">After tapping buy: <b>${b.bought}</b> bought · <b>${b.backed_out}</b> backed out · <b>${b.waiting_parent}</b> waiting on a parent · <b>${b.failed}</b> payment failed`
-    + `<span class="pc" style="white-space:normal">${b.taps} buy tap${b.taps === 1 ? '' : 's'} by ${b.people} ${b.people === 1 ? 'person' : 'people'} ${when}, any install date${errs ? '; error codes: ' + errs : ''}. Only phones on app 1.8.8 or later record this (2.0+ also counts every bought and waiting tap exactly; older phones count those once per screen). Bought = Apple's sheet finished, free-trial starts included. Taps read before 11-20 are dated by their last update.</span></td></tr>`;
+    + `<span class="pc" style="white-space:normal">${b.taps} buy tap${b.taps === 1 ? '' : 's'} by ${b.people} ${b.people === 1 ? 'person' : 'people'} ${when}, any install date${errs ? '; error codes: ' + errs : ''}. Only phones on app 1.8.8 or later record this (2.0+ also counts every bought and waiting tap exactly; older phones count those once per screen). Bought = Apple's sheet finished, free-trial starts included. Taps read before 11-20 are dated by their last update.</span>`
+    + (B.all && B.since ? `<span class="pc" style="white-space:normal">Since ${esc(B.since)} (all recorded): ${B.all.bought} bought · ${B.all.backed_out} backed out · ${B.all.waiting_parent} waiting on a parent · ${B.all.failed} payment failed${(B.all.top_errors || []).length ? ' (' + B.all.top_errors.map(([c, n]) => esc(c) + (n > 1 ? ' ×' + n : '')).join(', ') + ')' : ''}</span>` : '') + '</td></tr>';
 }
 
 function funnelCard() {
