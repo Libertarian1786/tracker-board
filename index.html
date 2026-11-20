@@ -698,6 +698,16 @@ function moneyCard() {
       scales: { x: { ticks: { color: css('--mute'), maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: css('--mute'), callback: (v) => sgn(v) }, grid: { color: css('--line') } } } } });
 }
 
+// 2026-11-20 (owner "Yes to tracking"): what Apple's payment sheet did after each buy tap, one row under "Pressed a buy button".
+function buyOutRow(cols) {
+  const B = last.rc_buy_outcomes || {}, b = B[range];
+  const when = range === 'day' ? 'today' : 'in the last 7 days';
+  if (!b) return `<tr><td colspan="${cols}" style="padding-left:18px;font-size:13px">After tapping buy: not recorded yet</td></tr>`;
+  const errs = (b.top_errors || []).map(([c, n]) => esc(c) + (n > 1 ? ' ×' + n : '')).join(', ');
+  return `<tr><td colspan="${cols}" style="padding-left:18px;font-size:13px">After tapping buy: <b>${b.bought}</b> bought · <b>${b.backed_out}</b> backed out · <b>${b.waiting_parent}</b> waiting on a parent · <b>${b.failed}</b> payment failed`
+    + `<span class="pc" style="white-space:normal">${b.taps} buy tap${b.taps === 1 ? '' : 's'} by ${b.people} ${b.people === 1 ? 'person' : 'people'} ${when}, any install date${errs ? '; error codes: ' + errs : ''}. Only phones on app 1.8.8 or later record this (2.0+ also counts every bought and waiting tap exactly; older phones count those once per screen). Bought = Apple's sheet finished, free-trial starts included. Taps read before 11-20 are dated by their last update.</span></td></tr>`;
+}
+
 function funnelCard() {
   const g0 = (((last.rc_funnel || {})[range]) || []);
   const label = range === 'day' ? 'today' : 'last 7 days';
@@ -706,7 +716,7 @@ function funnelCard() {
     const g1 = (((last.rc_funnel || {})[range]) || []).filter((x) => x.installs); const paidHere = g1.reduce((t, x) => t + (x.paid || 0), 0);
     const extra = paidAll - paidHere; const el = $('funextra'); if (el) el.textContent = extra > 0 ? '+' + extra + ' purchase' + (extra > 1 ? 's' : '') + ' ' + label + ' from people who installed earlier (' + money(revAll) + ' in all purchases ' + label + ')' : ''; }
   const T = $('fun');
-  if (!g0.length || !g0.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>'; $('funnote').textContent = ''; return; }
+  if (!g0.length || !g0.some((x) => x.installs)) { T.tHead.innerHTML = ''; T.tBodies[0].innerHTML = '<tr><td>No new installs in this period yet</td></tr>' + buyOutRow(1); $('funnote').textContent = ''; return; }
   // 2026-11-03 (owner: "fix the tracker funnel it's set up poorly"): the app's own order, each row a part of the row above,
   // ending in money actually charged; only app versions with installs in the period get a column.
   const g = g0.filter((x) => x.installs);
@@ -745,11 +755,12 @@ function funnelCard() {
         + (st.k === 'trial_any' && x.trial_any ? `<span class="pc">${x.trial_any - x.trial_paid} not charged yet or cancelled</span>` : '');
       return `<td class="n c">${num}${d ? `<span class="pc">${pc(num, d)} kept</span>` : ''}${extra}</td>`;
     }).join('');
+    const after = st.k === 'tapped' ? buyOutRow(split ? g.length + 2 : 2) : '';
     if (!split) {
-      if (!st.ok(g[0])) return '';
-      return `<tr><td${st.sub ? ' style="padding-left:18px"' : ''}>${st.sub ? '↳ ' : ''}${esc(st.l)}</td>${cells}</tr>`;
+      if (!st.ok(g[0])) return after;
+      return `<tr><td${st.sub ? ' style="padding-left:18px"' : ''}>${st.sub ? '↳ ' : ''}${esc(st.l)}</td>${cells}</tr>` + after;
     }
-    return `<tr><td>${esc(st.l)}</td><td class="n c">${tot}</td>${cells}</tr>`;
+    return `<tr><td>${esc(st.l)}</td><td class="n c">${tot}</td>${cells}</tr>` + after;
   }).join('');
   $('funnote').textContent = 'People who installed in the period (App Store installs only), in the order the app shows things. Each row is part of the row above, except the ↳ rows: a free trial and a purchase without one are the two ways in after pressing a buy button, and both are shares of that row ("Trial turned into a payment" is a share of the trials). "kept" is that share. Finished setup = got past the offer pages, or did anything later. Pressed a buy button counts everyone who pressed one, including people who then bought; the Summary\'s "tapped buy" counts only people who pressed and did not buy. Paid = money actually charged; a trial that has not charged yet is not paid. Counted by install date, so a purchase by someone who installed earlier appears in the Summary but not here. † = the Total counts only the app versions that record the step.';
 }
