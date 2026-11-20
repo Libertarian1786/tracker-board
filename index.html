@@ -416,6 +416,16 @@ details.lst[open]>summary{margin-bottom:4px}
 </details>
 <details class="nt"><summary><span>Finished days only; thick dashed line = 7-day average.</span> <span class="mo"></span></summary><p class="note" id="trnote"></p></details>
 </section>
+<!-- 2026-11-20 (owner "Sure"): Apple's own App Store analytics, search funnel -->
+<section class="card" id="asccard" data-title="App Store search">
+<h2>App Store search (Apple, 2–3 days behind)</h2>
+<p class="cap">Seen in App Store search → installed, from Apple's analytics. Ads = Apple Ads' own counts; Likely organic = the rest.</p>
+<div style="overflow-x:auto"><table id="ascsum"><thead></thead><tbody></tbody></table></div>
+<div class="ctitle">Not from ads (Apple's count, 2–3 days behind)</div>
+<div style="overflow-x:auto"><table id="ascsrc"><thead></thead><tbody></tbody></table></div>
+<details class="lst"><summary>Each day, newest first</summary><div style="overflow-x:auto"><table id="ascdays"><thead></thead><tbody></tbody></table></div></details>
+<details class="nt"><summary><span>Apple's files run 2–3 days behind; Likely organic = search minus ads.</span> <span class="mo"></span></summary><p class="note" id="ascnote"></p></details>
+</section>
 </div>
 </div>
 
@@ -707,6 +717,48 @@ function buyOutRow(cols) {
   return `<tr><td colspan="${cols}" style="padding-left:18px;font-size:13px">After tapping buy: <b>${b.bought}</b> bought · <b>${b.backed_out}</b> backed out · <b>${b.waiting_parent}</b> waiting on a parent · <b>${b.failed}</b> payment failed`
     + `<span class="pc" style="white-space:normal">${b.taps} buy tap${b.taps === 1 ? '' : 's'} by ${b.people} ${b.people === 1 ? 'person' : 'people'} ${when}, any install date${errs ? '; error codes: ' + errs : ''}. Only phones on app 1.8.8 or later record this (2.0+ also counts every bought and waiting tap exactly; older phones count those once per screen). Bought = Apple's sheet finished, free-trial starts included. Taps read before 11-20 are dated by their last update.</span>`
     + (B.all && B.since ? `<span class="pc" style="white-space:normal">Since ${esc(B.since)} (all recorded): ${B.all.bought} bought · ${B.all.backed_out} backed out · ${B.all.waiting_parent} waiting on a parent · ${B.all.failed} payment failed${(B.all.top_errors || []).length ? ' (' + B.all.top_errors.map(([c, n]) => esc(c) + (n > 1 ? ' ×' + n : '')).join(', ') + ')' : ''}</span>` : '') + '</td></tr>';
+}
+
+// 2026-11-20 (owner "Sure"): Apple's App Store search funnel (asc_funnel in data.json), last day / 7 / 30 days, baseline 8.6%.
+function ascCard() {
+  const A = last.asc_funnel;
+  const S = $('ascsum'), D = $('ascdays');
+  if (!A || !(A.days || []).length) { S.tBodies[0].innerHTML = '<tr><td>No App Store analytics yet</td></tr>'; return; }
+  const base = A.baseline_pct;
+  const pct = (n, d) => d ? (n / d * 100) : null;
+  const cell = (n, d) => { const p = pct(n, d); if (p == null) return `${n}<span class="sub">–</span>`;
+    const hi = p >= base; return `${n}<span class="sub" style="color:var(${hi ? '--good' : '--bad'})">${p.toFixed(1)}% ${hi ? '▲ above' : '▼ below'}</span>`; };
+  const W = [['Last day', A.last_day], ['7 days', A.d7], ['30 days', A.d30]];
+  S.tHead.innerHTML = '<tr><th></th>' + W.map(([l, w]) => `<th class="n">${l}<div class="sub" style="font-weight:400">${esc(w.first === w.last ? w.last : w.first + ' – ' + w.last)}</div></th>`).join('') + '</tr>';
+  const row = (l, f) => `<tr><td>${l}</td>${W.map(([, w]) => `<td class="n">${f(w)}</td>`).join('')}</tr>`;
+  S.tBodies[0].innerHTML = [
+    row('Seen in search', (w) => w.search_impressions),
+    row('Installed from search', (w) => cell(w.search_downloads, w.search_impressions)),
+    row('↳ Ads: seen → installed', (w) => `${w.ad_impressions} → ${cell(w.ad_installs, w.ad_impressions)}`),
+    row('↳ Likely organic: seen → installed', (w) => `${w.free_impressions} → ${cell(w.free_downloads, w.free_impressions)}`),
+    row('Product page views', (w) => w.page_views),
+    `<tr><td colspan="4" class="sub">Baseline ${base}% (${esc(A.baseline_src)}) seen → installed; ▲ above / ▼ below it.</td></tr>`,
+  ].join('');
+  D.tHead.innerHTML = '<tr><th>Day</th><th class="n">Seen</th><th class="n">Installed</th><th class="n">Ads seen → inst.</th><th class="n">Likely org. seen → inst.</th><th class="n">Page views</th></tr>';
+  D.tBodies[0].innerHTML = A.days.map((r) => `<tr><td>${esc(r.day.slice(5))}</td><td class="n">${r.search_impressions}</td><td class="n">${cell(r.search_downloads, r.search_impressions)}</td><td class="n">${r.ad_impressions} → ${r.ad_installs}</td><td class="n">${r.free_impressions} → ${r.free_downloads}</td><td class="n">${r.page_views}</td></tr>`).join('');
+  const SR = A.sources || {}, X = $('ascsrc');
+  if (SR.d7) {
+    const WS = [['Last day', SR.last_day], ['7 days', SR.d7], ['30 days', SR.d30]];
+    X.tHead.innerHTML = '<tr><th>Downloads</th>' + WS.map(([l, w]) => `<th class="n">${l}<div class="sub" style="font-weight:400">${esc(w.first === w.last ? w.last : w.first + ' – ' + w.last)}</div></th>`).join('') + '</tr>';
+    const rs = (l, f) => `<tr><td>${l}</td>${WS.map(([, w]) => `<td class="n">${f(w)}</td>`).join('')}</tr>`;
+    X.tBodies[0].innerHTML = [
+      rs('All downloads (Apple)', (w) => w.total),
+      rs('Apple Ads installs', (w) => w.ads),
+      rs('<b>Not from ads</b>', (w) => `<b>${w.not_ads}</b>`),
+      rs('↳ App Store search (minus ads)', (w) => w.not_ads - w.browse - w.web - w.app - w.other),
+      rs('↳ App Store browse', (w) => w.browse),
+      rs('↳ Websites', (w) => w.web),
+      rs('↳ Other apps', (w) => w.app),
+      rs('↳ Other / unavailable', (w) => w.other),
+      rs('Compare: RevenueCat "Likely organic"', (w) => w.cmp_days ? `${w.cmp_rc}<span class="sub">vs ${w.cmp_apple} not from ads (Apple), ${w.cmp_days} same day${w.cmp_days === 1 ? '' : 's'}</span>` : '–'),
+    ].join('');
+  } else { X.tBodies[0].innerHTML = '<tr><td>No download sources yet</td></tr>'; }
+  $('ascnote').textContent = "Not from ads = Apple's own downloads (first-time + redownloads) by source type, with Apple Ads' installs taken off App Store search because Apple counts an ad install as a search download; a day shows only once Apple Ads' count for it is in. RevenueCat's Likely organic = people who opened the app with no Apple Ads link, by the tracker's day; the two count different things (Apple: downloads; RevenueCat: first opens), so they will not match exactly. From Apple's App Store analytics files (pulled every 12 hours), App Store search only. Seen = search impressions; installed = downloads from search. Ads = Apple Ads' own impressions and installs; Likely organic = Apple's search total minus ads (not tied to an ad; most installs may still come from ads). When ads counted more than Apple's total, Likely organic shows 0 that day. Every day is kept.";
 }
 
 function funnelCard() {
@@ -1202,6 +1254,7 @@ async function load() {
     try { paymentsCard(); insightsCard(); } catch (e) { console.error(e); }
     try { moneyCard(); trendsCard(); } catch (e) {}
     try { ratingsCard(); } catch (e) { console.error(e); }
+    try { ascCard(); } catch (e) { console.error(e); }
     chart(d.ads_through_today || []);
     $('days').tBodies[0].innerHTML = (d.ads_days || []).map((r) =>
       `<tr><td>${r.day.slice(5)}</td><td class="n">${r.impressions}</td><td class="n">${r.taps}</td><td class="n">${r.installs}</td><td class="n">${money(r.spend)}</td></tr>`).join('');
