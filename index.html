@@ -171,6 +171,7 @@ details.lst[open]>summary{margin-bottom:4px}
 <div><div class="k" id="trials">–</div><div class="l">Trials</div></div>
 <div><div class="k" id="buys">–</div><div class="l">Purchases</div></div>
 <div><div class="k" id="t_in">–</div><div class="l">Money in<div class="sub" id="t_keep"></div></div></div>
+<div><div class="k" id="t_admob">–</div><div class="l">Ad revenue<div class="sub" id="t_admob_sub">AdMob</div></div></div>
 <div><div class="k" id="spend">–</div><div class="l">Ad spend<div class="sub">Apple Ads</div></div></div>
 <div><div class="k" id="t_pl">–</div><div class="l"><span id="t_pll">Profit / loss</span><div class="sub">you keep minus ad cost</div></div></div>
 </div>
@@ -721,6 +722,14 @@ function moneyCard() {
   { const tw = moneyWin(win), net = tw.proceeds - tw.spend;  // 2026-11-19 Today strip
     $('t_in').textContent = sgn(tw.gross); $('t_keep').textContent = 'you keep ' + sgn(tw.proceeds);
     $('t_pl').textContent = sgn(net); $('t_pl').className = 'k ' + cls(net); $('t_pll').textContent = net >= 0 ? 'Profit' : 'Loss'; }
+  try {  // 2026-11-27 AdMob earnings (in-app ads, free 2.1)
+    const ad = last.admob;
+    if (ad) {
+      const ds = ad.days || [], wk = ds.slice(-7).reduce((t, r) => t + r.usd, 0);
+      $('t_admob').textContent = sgn(range === 'day' ? ad.today_usd : wk);
+      $('t_admob_sub').textContent = 'AdMob · since 2.1 ' + sgn(ad.since_21_usd) + ' · ' + (range === 'day' ? ad.today_impressions : ds.slice(-7).reduce((t, r) => t + r.impressions, 0)) + ' ads shown';
+    } else if (last.admob_error) { $('t_admob_sub').textContent = 'AdMob not reachable'; }
+  } catch (e) {}
   const rows = days.slice().reverse();
   $('mdays').tBodies[0].innerHTML = rows.map((r) => `<tr><td>${dd(r.day)}${r.rev_src === 'apple' ? '' : '<div class="sub">RC</div>'}</td><td class="n">${sgn(r.spend)}</td><td class="n">${sgn(r.gross)}</td><td class="n">${sgn(r.proceeds)}</td><td class="n ${cls(r.proceeds - r.spend)}">${sgn(r.proceeds - r.spend)}</td><td class="n ${cls(r.cum_net)}">${sgn(r.cum_net)}</td></tr>`).join('');
   const all = moneyWin(days);
